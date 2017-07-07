@@ -1,6 +1,9 @@
 # SLua
 Fastest lua binding via static code generation for Unity3D or mono
 
+## Changes compared to pangweiwei's version
+The changes are mostly around readability, classes, variables, and functions now maintain more accurate and descriptive names.  There are also a few small functionality changes that improve how the system is used.
+
 ## Release Download
 
 - [slua-unity](https://github.com/braedonwooding/slua/releases/latest)
