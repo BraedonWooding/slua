@@ -1,31 +1,19 @@
-﻿// The MIT License (MIT)
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net / chenjian  2743182@qq.com
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
 
 namespace SLua
 {
@@ -43,10 +31,8 @@ namespace SLua
             string param,
             string workDir,
             DataReceivedEventHandler dataReceived,
-            DataReceivedEventHandler errorReceived
-            )
+            DataReceivedEventHandler errorReceived)
         {
-
             Process ps = new Process
             {
                 StartInfo =
@@ -58,8 +44,7 @@ namespace SLua
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WorkingDirectory = workDir,
-
-    }
+            }
             };
             ps.OutputDataReceived += dataReceived;
             ps.ErrorDataReceived += errorReceived;
@@ -70,19 +55,7 @@ namespace SLua
             return ps;
         }
 
-        private static void DataReceived(object sender, DataReceivedEventArgs eventArgs)
-        {
-            if (eventArgs.Data != null) UnityEngine.Debug.Log(eventArgs.Data);
-        }
-
-        private static void ErrorReceived(object sender, DataReceivedEventArgs eventArgs)
-        {
-            if (eventArgs.Data != null) UnityEngine.Debug.LogError(eventArgs.Data);
-        }
-
-
-
-        public static void compileLuaJit(string[] src, string[] dst, JITBUILDTYPE buildType)
+        public static void CompileLuaJit(string[] src, string[] dst, JITBUILDTYPE buildType)
         {
             UnityEngine.Debug.Log("compileLuajit");
 #if !UNITY_EDITOR_OSX
@@ -93,9 +66,8 @@ namespace SLua
             { JITBUILDTYPE.X64, Application.dataPath + "/../jit/win/x64/luajit.exe" },
             { JITBUILDTYPE.GC64, Application.dataPath + "/../jit/win/gc64/luajit.exe" },
         };
-            string exePath = build[ buildType ];
-            Process[] psList = new Process[src.Length];
-
+            string exePath = build[buildType];
+            Process[] processList = new Process[src.Length];
 #else
         string workDir = Application.dataPath + "/../jit/";
         Dictionary<JITBUILDTYPE, string> build = new Dictionary<JITBUILDTYPE, string>
@@ -108,25 +80,20 @@ namespace SLua
         string exePath = build[ buildType ];
         // Process[] psList = new Process[ src.Length ];
 #endif
-
             for (int i = 0; i < src.Length; i++)
             {
                 string srcLua = Application.dataPath + "/../" + src[i];
                 string dstLua = Application.dataPath + "/../" + dst[i];
                 string cmd = " -b " + srcLua + " " + dstLua;
-
-
 #if !UNITY_EDITOR_OSX
-                psList[i] = StartProcess(exePath, cmd, workDir);
+                processList[i] = StartProcess(exePath, cmd, workDir);
 #else
                 var ps = StartProcess(exePath, cmd, workDir );
                 ps.WaitForExit();
 #endif
             }
-
-
 #if !UNITY_EDITOR_OSX
-            foreach (var ps in psList)
+            foreach (Process ps in processList)
             {
                 if (ps != null && !ps.HasExited)
                 {
@@ -136,13 +103,13 @@ namespace SLua
 #endif
         }
 
-        static void exportLuajit( string res, string ext, string jitluadir, JITBUILDTYPE buildType )
+        public static void ExportLuajit(string res, string ext, string jitluadir, JITBUILDTYPE buildType)
         {
             // delete
-            AssetDatabase.DeleteAsset( jitluadir );
+            AssetDatabase.DeleteAsset(jitluadir);
 
-            var files = Directory.GetFiles(res, ext, SearchOption.AllDirectories);
-            var dests = new string[files.Length];
+            string[] files = Directory.GetFiles(res, ext, SearchOption.AllDirectories);
+            string[] dests = new string[files.Length];
 
             for (int i = 0; i < files.Length; i++)
             {
@@ -165,28 +132,42 @@ namespace SLua
                 // Debug.Log(file + ":" + destName);
             }
 
-
-           	compileLuaJit(files, dests, buildType );
+            CompileLuaJit(files, dests, buildType);
             AssetDatabase.Refresh();
         }
 
         [MenuItem("SLua/Compile Bytecode/luajitx86 for WIN32&Android ARMV7")]
-        static void exportLuajitx86()
+        public static void ExportLuajitx86()
         {
-            exportLuajit("Assets/Slua/Resources/", "*.txt", "Assets/Slua/jit/jitx86", JITBUILDTYPE.X86);
+            ExportLuajit("Assets/Slua/Resources/", "*.txt", "Assets/Slua/jit/jitx86", JITBUILDTYPE.X86);
         }
 
-		[MenuItem("SLua/Compile Bytecode/luajitx64 for WIN64")]
-        static void exportLuajitx64()
+        [MenuItem("SLua/Compile Bytecode/luajitx64 for WIN64")]
+        public static void ExportLuajitx64()
         {
-            exportLuajit("Assets/Slua/Resources/", "*.txt", "Assets/Slua/jit/jitx64", JITBUILDTYPE.X64);
+            ExportLuajit("Assets/Slua/Resources/", "*.txt", "Assets/Slua/jit/jitx64", JITBUILDTYPE.X64);
         }
 
-		[MenuItem("SLua/Compile Bytecode/luajitgc64 for MAC&ARM64")]
-        static void exportLuajitgc64()
+        [MenuItem("SLua/Compile Bytecode/luajitgc64 for MAC&ARM64")]
+        public static void ExportLuajitgc64()
         {
-            exportLuajit("Assets/Slua/Resources/", "*.txt", "Assets/Slua/jit/jitgc64", JITBUILDTYPE.GC64);
+            ExportLuajit("Assets/Slua/Resources/", "*.txt", "Assets/Slua/jit/jitgc64", JITBUILDTYPE.GC64);
         }
 
+        private static void DataReceived(object sender, DataReceivedEventArgs eventArgs)
+        {
+            if (eventArgs.Data != null)
+            {
+                UnityEngine.Debug.Log(eventArgs.Data);
+            }
+        }
+
+        private static void ErrorReceived(object sender, DataReceivedEventArgs eventArgs)
+        {
+            if (eventArgs.Data != null)
+            {
+                UnityEngine.Debug.LogError(eventArgs.Data);
+            }
+        }
     }
 }

@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -28,65 +27,62 @@ using UnityEditor;
 using UnityEngine;
 #endif
 
-namespace SLua{
-	public enum EOL{
-		Native,
-		CRLF,
-		CR,
-		LF,
-	}
+namespace SLua
+{
+    public enum EOL
+    {
+        Native,
+        CRLF,
+        CR,
+        LF,
+    }
 
-	public enum JITBUILDTYPE : int
-	{
-		none = 0,
-		X86 = 1,
-		X64 = 2,
-		GC64 = 3,
-	}
+    public enum JITBUILDTYPE : int
+    {
+        none,
+        X86,
+        X64,
+        GC64,
+    }
 
-	public class SLuaSetting 
-	#if !SLUA_STANDALONE
-		: ScriptableObject
-	#endif
-	{
+    public class SLuaSetting : ScriptableObject
+    {
+        public EOL Eol = EOL.Native;
+        public bool ExportExtensionMethod = true;
+        public string UnityEngineGeneratePath = "Assets/Slua/LuaObject/";
 
-		public EOL eol = EOL.Native;
-		public bool exportExtensionMethod = true;
-		public string UnityEngineGeneratePath = "Assets/Slua/LuaObject/";
+        public JITBUILDTYPE JitType = JITBUILDTYPE.none;
 
+        // public int debugPort=10240;
+        // public string debugIP="0.0.0.0"; // no longer debugger built-in
+        private static SLuaSetting instance = null;
 
-		public JITBUILDTYPE jitType = JITBUILDTYPE.none;
+        public static SLuaSetting Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = Resources.Load<SLuaSetting>("setting");
+#if UNITY_EDITOR
+                    if (instance == null)
+                    {
+                        instance = SLuaSetting.CreateInstance<SLuaSetting>();
+                        AssetDatabase.CreateAsset(instance, "Assets/Slua/Resources/setting.asset");
+                    }
+#endif
+                }
 
-		// public int debugPort=10240;
-		// public string debugIP="0.0.0.0"; // no longer debugger built-in
+                return instance;
+            }
+        }
 
-		private static SLuaSetting _instance=null;
-		public static SLuaSetting Instance{
-			get{
-				#if !SLUA_STANDALONE
-				if(_instance == null){
-					_instance = Resources.Load<SLuaSetting>("setting");
-
-				#if UNITY_EDITOR
-					if(_instance == null){
-						_instance =  SLuaSetting.CreateInstance<SLuaSetting>();
-						AssetDatabase.CreateAsset(_instance,"Assets/Slua/Resources/setting.asset");
-					}
-				#endif
-
-				}
-				#endif
-				return _instance;
-			}
-		}
-
-		#if UNITY_EDITOR && !SLUA_STANDALONE
-		[MenuItem("SLua/Setting")]
-		public static void Open(){
-			Selection.activeObject = Instance;
-		}
-		#endif
-
-	}
-
+#if UNITY_EDITOR
+        [MenuItem("SLua/Setting")]
+        public static void Open()
+        {
+            Selection.activeObject = Instance;
+        }
+#endif
+    }
 }

@@ -1,41 +1,37 @@
-﻿// The MIT License (MIT)
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+using System.Collections.Generic;
 
 namespace SLua
 {
-    using System.Collections.Generic;
-    using System;
-
     public class CustomExport
     {
-        public static void OnGetAssemblyToGenerateExtensionMethod(out List<string> list) {
-            list = new List<string> {
+        public static List<string> FunctionFilterList = new List<string>()
+        {
+            "UIWidget.showHandles",
+            "UIWidget.showHandlesWithMoveTool",
+        };
+
+        public static void OnGetAssemblyToGenerateExtensionMethod(out List<string> list)
+        {
+            list = new List<string>
+            {
                 "Assembly-CSharp",
             };
         }
 
         public static void OnAddCustomClass(LuaCodeGen.ExportGenericDelegate add)
         {
-			// below lines only used for demostrate how to add custom class to export, can be delete on your app
+            // below lines only used for demostrate how to add custom class to export, can be delete on your app
 
             add(typeof(System.Func<int>), null);
             add(typeof(System.Action<int, string>), null);
@@ -43,7 +39,7 @@ namespace SLua
             add(typeof(List<int>), "ListInt");
             add(typeof(Dictionary<int, string>), "DictIntStr");
             add(typeof(string), "String");
-            
+
             // add your custom class here
             // add( type, typename)
             // type is what you want to export
@@ -56,14 +52,14 @@ namespace SLua
             // you can build a dll for 3rd library like ngui titled assembly name "NGUI", put it in Assets folder
             // add its name into list, slua will generate all exported interface automatically for you
 
-            //list.Add("NGUI");
+            // list.Add("NGUI");
         }
 
         public static HashSet<string> OnAddCustomNamespace()
         {
             return new HashSet<string>
             {
-                //"NLuaTest.Mock"
+                // "NLuaTest.Mock"
             };
         }
 
@@ -72,20 +68,15 @@ namespace SLua
         {
             list = new List<string>
             {
-                //"UnityEngine.GameObject",
+                // "UnityEngine.GameObject",
             };
         }
 
-        public static List<string> FunctionFilterList = new List<string>()
-        {
-            "UIWidget.showHandles",
-            "UIWidget.showHandlesWithMoveTool",
-        };
         // black list if white list not given
         public static void OnGetNoUseList(out List<string> list)
         {
             list = new List<string>
-            {      
+            {
                 "HideInInspector",
                 "ExecuteInEditMode",
                 "AddComponentMenu",
@@ -94,7 +85,7 @@ namespace SLua
                 "DisallowMultipleComponent",
                 "SerializeField",
                 "AssemblyIsEditorAssembly",
-                "Attribute", 
+                "Attribute",
                 "Types",
                 "UnitySurrogateSelector",
                 "TrackedReference",
@@ -117,7 +108,7 @@ namespace SLua
                 "TextClipping",
                 "Gizmos",
                 "ADBannerView",
-                "ADInterstitialAd",            
+                "ADInterstitialAd",
                 "Android",
                 "Tizen",
                 "jvalue",
@@ -133,7 +124,7 @@ namespace SLua
                 "Handheld",
                 "LocalNotification",
                 "NotificationServices",
-                "RemoteNotificationType",      
+                "RemoteNotificationType",
                 "RemoteNotification",
                 "SamsungTV",
                 "TextureCompressionQuality",
@@ -141,7 +132,7 @@ namespace SLua
                 "TouchScreenKeyboard",
                 "MovieTexture",
                 "UnityEngineInternal",
-                "Terrain",                            
+                "Terrain",
                 "Tree",
                 "SplatPrototype",
                 "DetailPrototype",
@@ -149,8 +140,8 @@ namespace SLua
                 "MeshSubsetCombineUtility",
                 "AOT",
                 "Social",
-                "Enumerator",       
-                "SendMouseEvents",               
+                "Enumerator",
+                "SendMouseEvents",
                 "Cursor",
                 "Flash",
                 "ActionScript",
@@ -162,15 +153,15 @@ namespace SLua
                 "GraphicRebuildTracker",
                 "Advertisements",
                 "UnityEditor",
-			    "WSA",
-			    "EventProvider",
-			    "Apple",
-			    "ClusterInput",
-				"Motion",
+                "WSA",
+                "EventProvider",
+                "Apple",
+                "ClusterInput",
+                "Motion",
                 "UnityEngine.UI.ReflectionMethodsCache",
-				"NativeLeakDetection",
-				"NativeLeakDetectionMode",
-				"WWWAudioExtensions",
+                "NativeLeakDetection",
+                "NativeLeakDetectionMode",
+                "WWWAudioExtensions",
             };
         }
     }

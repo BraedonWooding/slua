@@ -1,27 +1,15 @@
-// The MIT License (MIT)
-
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
 using System;
-using System.Collections;
 
 namespace SLua
 {
@@ -29,86 +17,93 @@ namespace SLua
 
     public class LuaThreadWrapper : LuaVar
     {
-        private IntPtr _thread;
-        
-        public LuaThreadWrapper(LuaFunction func)
+        private IntPtr thread;
+
+        public LuaThreadWrapper(LuaFunction function)
          : base()
         {
-            Debug.LogFormat("LuaThreadWrapper.ctor/1: {0}", LuaDLL.lua_gettop(func.L));
-            state = LuaState.get(func.L);
-            _thread = LuaDLL.lua_newthread(func.L);
-            valueref = LuaDLL.luaL_ref(func.L, LuaIndexes.LUA_REGISTRYINDEX);
-            func.push(func.L);
-            LuaDLL.lua_xmove(func.L, _thread, 1);
-            Debug.LogFormat("LuaThreadWrapper.ctor/2: {0}", LuaDLL.lua_gettop(func.L));
+            Debug.LogFormat("LuaThreadWrapper.ctor/1: {0}", LuaNativeMethods.lua_gettop(function.VariablePointer));
+            this.state = LuaState.Get(function.VariablePointer);
+            this.thread = LuaNativeMethods.lua_newthread(function.VariablePointer);
+            this.valueref = LuaNativeMethods.luaL_ref(function.VariablePointer, LuaIndexes.LUARegistryIndex);
+            function.Push(function.VariablePointer);
+            LuaNativeMethods.lua_xmove(function.VariablePointer, this.thread, 1);
+            Debug.LogFormat("LuaThreadWrapper.ctor/2: {0}", LuaNativeMethods.lua_gettop(function.VariablePointer));
         }
 
         ~LuaThreadWrapper()
         {
             Debug.Log("~LuaThreadWrapper");
-            Dispose(false);
+            this.Dispose(false);
         }
 
-		public override void Dispose(bool disposeManagedResources)
+        public override void Dispose(bool disposeManagedResources)
         {
             base.Dispose(disposeManagedResources);
-            _thread = IntPtr.Zero;
+            this.thread = IntPtr.Zero;
         }
 
-        public bool EqualsTo(IntPtr L)
+        public bool EqualsTo(IntPtr ptr)
         {
-            return _thread == L;
-        }
-
-        private object TopObjects(int nArgs)
-        {
-            if (nArgs == 0)
-                return null;
-            else if (nArgs == 1)
-            {
-                object o = LuaObject.checkVar(_thread, -1);
-                return o;
-            }
-            else
-            {
-                object[] o = new object[nArgs];
-                for (int n = 1; n <= nArgs; n++)
-                {
-                    o[n - 1] = LuaObject.checkVar(_thread, n);
-                }
-                return o;
-            }
+            return this.thread == ptr;
         }
 
         public bool Resume(out object retVal)
         {
-            if (_thread == IntPtr.Zero)
+            if (this.thread == IntPtr.Zero)
             {
                 Logger.LogError("thread: already disposed?");
                 retVal = null;
                 return false;
             }
-            var status = LuaDLL.lua_status(_thread);
+
+            int status = LuaNativeMethods.lua_status(this.thread);
             if (status != 0 && status != (int)LuaThreadStatus.LUA_YIELD)
             {
                 Logger.LogError("thread: wrong status ?= " + status);
                 retVal = null;
                 return false;
             }
-            var result = LuaDLL.lua_resume(_thread, 0);
+
+            int result = LuaNativeMethods.lua_resume(this.thread, 0);
             if (result != (int)LuaThreadStatus.LUA_YIELD)
             {
                 if (result != 0)
                 {
-                    string error = LuaDLL.lua_tostring(_thread, -1);
+                    string error = LuaNativeMethods.lua_tostring(this.thread, -1);
                     Logger.LogError(string.Format("wrong result ?= {0} err: {1}", result, error));
                 }
+
                 retVal = null;
                 return false;
             }
-            var nArgsFromYield = LuaDLL.lua_gettop(_thread);
-            retVal = TopObjects(nArgsFromYield);
+
+            int argsFromYield = LuaNativeMethods.lua_gettop(this.thread);
+            retVal = this.TopObjects(argsFromYield);
             return true;
+        }
+
+        private object TopObjects(int args)
+        {
+            if (args == 0)
+            {
+                return null;
+            }
+            else if (args == 1)
+            {
+                object o = LuaObject.CheckVar(this.thread, -1);
+                return o;
+            }
+            else
+            {
+                object[] o = new object[args];
+                for (int n = 1; n <= args; n++)
+                {
+                    o[n - 1] = LuaObject.CheckVar(this.thread, n);
+                }
+
+                return o;
+            }
         }
     }
 }

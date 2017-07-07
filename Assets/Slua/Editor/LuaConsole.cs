@@ -1,37 +1,25 @@
-﻿// The MIT License (MIT)
-
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net / jiangzhhhh  jiangzhhhh@gmail.com
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
 using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
-using System.Text;
-using System;
 
 namespace SLua
 {
     public class LuaConsole : EditorWindow
     {
         #region COMMON_DEFINE
-        const string COMMON_DEFINE = @"
+        public const string CommonDefine = @"
 local function prettyTabToStr(tab, level, path, visited)
     local result = ''
     if level == nil then
@@ -118,7 +106,7 @@ end
 local function eval(code)
     local func,err = loadstring('return ' .. code)
     if not func then
-        error(err)
+        LuaObject.Error(err)
     end
     setfenv(func, env)
     return func()
@@ -126,7 +114,7 @@ end
 local function compile(code)
     local func,err = loadstring('do ' .. code .. ' end')
     if not func then
-        error(err)
+        LuaObject.Error(err)
     end
     setfenv(func, env)
     func()
@@ -168,68 +156,84 @@ local function dirExpr(str)
 end
 ";
         #endregion
+
+        private string inputText = string.Empty;
+        private string filterText = string.Empty;
+
+        private string outputText = "LuaConsole:\n";
+        private StringBuilder outputBuffer = new StringBuilder();
+        private List<OutputRecord> recordList = new List<OutputRecord>();
+
+        private List<string> history = new List<string>();
+        private int historyIndex = 0;
+
+        private Vector2 scrollPosition = Vector2.zero;
+        private GUIStyle textAreaStyle = new GUIStyle();
+        private bool initedStyle = false;
+        private bool toggleLog = true;
+        private bool toggleErr = true;
+
+        private float inputAreaPosY = 0f;
+        private float inputAreaHeight = 50f;
+        private bool inputAreaResizing;
+
         [MenuItem("SLua/LuaConsole")]
-        static void Open()
+        public static void Open()
         {
             EditorWindow.GetWindow<LuaConsole>("LuaConsole");
         }
 
-        string inputText = "";
-        string filterText = "";
-
-        struct OutputRecord
+        [MenuItem("CONTEXT/Component/Push Component To Lua")]
+        public static void PushComponentObjectToLua(MenuCommand cmd)
         {
-            public string text;
-            public enum OutputType
+            Component com = cmd.context as Component;
+            if (com == null)
             {
-                Log = 0,
-                Err = 1,
+                return;
             }
-            public OutputType type;
-            public OutputRecord(string text, OutputType type)
+
+            LuaState luaState = LuaState.Main;
+            if (luaState == null)
             {
-                this.type = type;
-                if (type == OutputType.Err)
-                {
-                    this.text = "<color=#a52a2aff>" + text + "</color>";
-                }
-                else
-                {
-                    this.text = text;
-                }
+                return;
             }
+
+            LuaObject.PushObject(luaState.StatePointer, com);
+            LuaNativeMethods.lua_setglobal(luaState.StatePointer, "_");
         }
 
-        string outputText = "LuaConsole:\n";
-        StringBuilder outputBuffer = new StringBuilder();
-        List<OutputRecord> recordList = new List<OutputRecord>();
+        [MenuItem("CONTEXT/Component/Push GameObject To Lua")]
+        public static void PushGameObjectToLua(MenuCommand cmd)
+        {
+            Component com = cmd.context as Component;
+            if (com == null)
+            {
+                return;
+            }
 
-		List<string> history = new List<string>();
-		int historyIndex = 0;
+            LuaState luaState = LuaState.Main;
+            if (luaState == null)
+            {
+                return;
+            }
 
-        Vector2 scrollPosition = Vector2.zero;
-        GUIStyle textAreaStyle = new GUIStyle();
-        bool initedStyle = false;
-        bool toggleLog = true;
-        bool toggleErr = true;
+            SLua.LuaObject.PushObject(luaState.StatePointer, com.gameObject);
+            LuaNativeMethods.lua_setglobal(luaState.StatePointer, "_");
+        }
 
-        float inputAreaPosY = 0f;
-        float inputAreaHeight = 50f;
-        bool inputAreaResizing;
-
-        void AddLog(string str)
+        public void AddLog(string str)
         {
             recordList.Add(new OutputRecord(str, OutputRecord.OutputType.Log));
             ConsoleFlush();
         }
 
-        void AddError(string str)
+        public void AddError(string str)
         {
             recordList.Add(new OutputRecord(str, OutputRecord.OutputType.Err));
             ConsoleFlush();
         }
 
-        void ConsoleFlush()
+        public void ConsoleFlush()
         {
             outputBuffer.Length = 0;
 
@@ -237,23 +241,27 @@ end
             for (int i = 0; i < recordList.Count; ++i)
             {
                 OutputRecord record = recordList[i];
-                if (record.type == OutputRecord.OutputType.Log && !toggleLog)
+                if (record.Type == OutputRecord.OutputType.Log && !toggleLog)
+                {
                     continue;
-                else if (record.type == OutputRecord.OutputType.Err && !toggleErr)
+                }
+                else if (record.Type == OutputRecord.OutputType.Err && !toggleErr)
+                {
                     continue;
+                }
 
                 if (!string.IsNullOrEmpty(keyword))
                 {
-                    if (record.text.IndexOf(keyword) >= 0)
+                    if (record.Text.IndexOf(keyword) >= 0)
                     {
                         string highlightText = string.Format("<color=#ffff00ff>{0}</color>", keyword);
-                        string displayText = record.text.Replace(keyword, highlightText);
+                        string displayText = record.Text.Replace(keyword, highlightText);
                         outputBuffer.AppendLine(displayText);
                     }
                 }
                 else
                 {
-                    outputBuffer.AppendLine(record.text);
+                    outputBuffer.AppendLine(record.Text);
                 }
             }
 
@@ -262,25 +270,25 @@ end
             Repaint();
         }
 
-        void OnEnable()
+        public void OnEnable()
         {
-            LuaState.logDelegate += AddLog;
-            LuaState.errorDelegate += AddError;
+            LuaState.LogEvent += AddLog;
+            LuaState.ErrorEvent += AddError;
         }
 
-        void OnDisable()
+        public void OnDisable()
         {
-            LuaState.logDelegate -= AddLog;
-            LuaState.errorDelegate -= AddError;
+            LuaState.LogEvent -= AddLog;
+            LuaState.ErrorEvent -= AddError;
         }
 
-        void OnDestroy()
+        public void OnDestroy()
         {
-            LuaState.logDelegate -= AddLog;
-			LuaState.errorDelegate -= AddError;
+            LuaState.LogEvent -= AddLog;
+            LuaState.ErrorEvent -= AddError;
         }
 
-        void OnGUI()
+        public void OnGUI()
         {
             if (!initedStyle)
             {
@@ -290,30 +298,31 @@ end
                 initedStyle = true;
             }
 
-            //Output Text Area
-			scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(Screen.width), GUILayout.ExpandHeight(true));
-			EditorGUILayout.TextArea(outputText, textAreaStyle, GUILayout.ExpandHeight(true));
+            // Output Text Area
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(Screen.width), GUILayout.ExpandHeight(true));
+            EditorGUILayout.TextArea(outputText, textAreaStyle, GUILayout.ExpandHeight(true));
             GUILayout.EndScrollView();
 
-            //Filter Option Toggles
+            // Filter Option Toggles
             GUILayout.BeginHorizontal();
             bool oldToggleLog = toggleLog;
             bool oldToggleErr = toggleErr;
             toggleLog = GUILayout.Toggle(oldToggleLog, "log", GUILayout.ExpandWidth(false));
             toggleErr = GUILayout.Toggle(oldToggleErr, "error", GUILayout.ExpandWidth(false));
 
-            //Filter Input Field
+            // Filter Input Field
             GUILayout.Space(10f);
             GUILayout.Label("filter:", GUILayout.ExpandWidth(false));
             string oldFilterPattern = filterText;
             filterText = GUILayout.TextField(oldFilterPattern, GUILayout.Width(200f));
 
-            //Menu Buttons
+            // Menu Buttons
             if (GUILayout.Button("clear", GUILayout.ExpandWidth(false)))
             {
                 recordList.Clear();
                 ConsoleFlush();
             }
+
             GUILayout.EndHorizontal();
 
             if (toggleLog != oldToggleLog || toggleErr != oldToggleErr || filterText != oldFilterPattern)
@@ -326,10 +335,10 @@ end
                 inputAreaPosY = GUILayoutUtility.GetLastRect().yMax;
             }
 
-            //Drag Spliter
+            // Drag Spliter
             ResizeScrollView();
 
-            //Input Area
+            // Input Area
             GUI.SetNextControlName("Input");
             inputText = EditorGUILayout.TextField(inputText, GUILayout.Height(inputAreaHeight));
 
@@ -338,15 +347,16 @@ end
                 bool refresh = false;
                 if (Event.current.keyCode == KeyCode.Return)
                 {
-                    if (inputText != "")
+                    if (inputText != string.Empty)
                     {
                         if (history.Count == 0 || history[history.Count - 1] != inputText)
                         {
                             history.Add(inputText);
                         }
+
                         AddLog(inputText);
                         DoCommand(inputText);
-                        inputText = "";
+                        inputText = string.Empty;
                         refresh = true;
                         historyIndex = history.Count;
                     }
@@ -393,7 +403,7 @@ end
             }
         }
 
-        void ResizeScrollView()
+        public void ResizeScrollView()
         {
             Rect dragSpliterRect = new Rect(0f, inputAreaPosY + 2, Screen.width, 2);
             EditorGUI.DrawRect(dragSpliterRect, Color.black);
@@ -406,6 +416,7 @@ end
                 e.Use();
                 inputAreaResizing = true;
             }
+
             if (e.type == EventType.MouseDrag)
             {
                 if (inputAreaResizing)
@@ -417,79 +428,87 @@ end
             }
 
             if (e.type == EventType.MouseUp)
+            {
                 inputAreaResizing = false;
+            }
         }
 
-        void DoCommand(string str)
+        public void DoCommand(string str)
         {
-            LuaState luaState = LuaState.main;
+            LuaState luaState = LuaState.Main;
             if (luaState == null)
+            {
                 return;
+            }
 
             if (string.IsNullOrEmpty(str))
+            {
                 return;
+            }
 
             int index = str.IndexOf(" ");
             string cmd = str;
-            string tail = "";
+            string tail = string.Empty;
             if (index > 0)
             {
                 cmd = str.Substring(0, index).Trim().ToLower();
                 tail = str.Substring(index + 1);
             }
+
             if (cmd == "p")
             {
-                if (tail == "")
+                if (tail == string.Empty)
+                {
                     return;
-                LuaFunction f = luaState.doString(COMMON_DEFINE + "return printExpr", "LuaConsole") as LuaFunction;
-                f.call(tail);
-				f.Dispose ();
+                }
+
+                LuaFunction f = luaState.DoString(CommonDefine + "return printExpr", "LuaConsole") as LuaFunction;
+                f.Call(tail);
+                f.Dispose();
             }
             else if (cmd == "dir")
             {
-                if (tail == "")
+                if (tail == string.Empty)
+                {
                     return;
-                LuaFunction f = luaState.doString(COMMON_DEFINE + "return dirExpr", "LuaConsole") as LuaFunction;
-                f.call(tail);
-				f.Dispose ();
+                }
+
+                LuaFunction f = luaState.DoString(CommonDefine + "return dirExpr", "LuaConsole") as LuaFunction;
+                f.Call(tail);
+                f.Dispose();
             }
             else
             {
-                LuaFunction f = luaState.doString(COMMON_DEFINE + "return compile", "LuaConsole") as LuaFunction;
-                f.call(str);
-				f.Dispose ();
+                LuaFunction f = luaState.DoString(CommonDefine + "return compile", "LuaConsole") as LuaFunction;
+                f.Call(str);
+                f.Dispose();
             }
         }
 
-
-        [MenuItem("CONTEXT/Component/Push Component To Lua")]
-        static void PushComponentObjectToLua(MenuCommand cmd)
+        public struct OutputRecord
         {
-            Component com = cmd.context as Component;
-			if (com == null)
-                return;
+            public OutputRecord(string text, OutputType type)
+            {
+                this.Type = type;
+                if (type == OutputType.Err)
+                {
+                    this.Text = "<color=#a52a2aff>" + text + "</color>";
+                }
+                else
+                {
+                    this.Text = text;
+                }
+            }
 
-            LuaState luaState = LuaState.main;
-            if (luaState == null)
-                return;
+            public enum OutputType
+            {
+                Log = 0,
+                Err = 1,
+            }
 
-			LuaObject.pushObject(luaState.L, com);
-            LuaDLL.lua_setglobal(luaState.L, "_");
-        }
+            public string Text { get; private set; }
 
-        [MenuItem("CONTEXT/Component/Push GameObject To Lua")]
-        static void PushGameObjectToLua(MenuCommand cmd)
-        {
-            Component com = cmd.context as Component;
-            if (com == null)
-                return;
-
-            LuaState luaState = LuaState.main;
-            if (luaState == null)
-                return;
-
-            SLua.LuaObject.pushObject(luaState.L, com.gameObject);
-            LuaDLL.lua_setglobal(luaState.L, "_");
+            public OutputType Type { get; private set; }
         }
     }
 }

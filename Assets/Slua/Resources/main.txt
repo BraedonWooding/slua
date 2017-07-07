@@ -24,7 +24,7 @@ function testArray()
 		print(v)
 	end
 	
-	local a=Slua.MakeArray("System.Int16",{1,2,3,4})
+	local a=Slua.MakeArray("short",{1,2,3,4})
 	for v in Slua.iter(a) do
 		print(v)
 	end
@@ -50,7 +50,7 @@ function main()
 	-- Cache unpack function.
 	local unpack = (unpack and unpack) or table.unpack
 
-	-- test split of System.String
+	-- test split of string
 	local x=String("a,b,c,d/e/f/g")
 	print(unpack(x:Split(",/",0).Table))
 	print(unpack(x:Split({",","/"},0).Table))
@@ -136,10 +136,10 @@ function main()
 
 
 	print('Construct bytearray object',ba)
-	print(ba:ReadByte(),ba:ReadByte())
+	print(ba:this.ReadByte(),ba:this.ReadByte())
 	assert(ba.Length==4)
 	assert(ba.Position==2)
-	assert(ba:ReadByte()==53)
+	assert(ba:this.ReadByte()==53)
 
 	-- construct new byte array
 	local ba = Slua.ByteArray()
@@ -147,8 +147,8 @@ function main()
 	ba:WriteByte(22)
 	ba:WriteVarInt(1024)
 	ba.Position=0
-	assert(ba:ReadByte()==11)
-	assert(ba:ReadByte()==22)
+	assert(ba:this.ReadByte()==11)
+	assert(ba:this.ReadByte()==22)
 	assert(ba:ReadVarInt()==1024)
 
 
@@ -239,8 +239,8 @@ function main()
 	HelloWorld.func6("aa",1,2,3,"bb",true,false)
 	HelloWorld.func6("aa")
 	local ss=String("bb")
-	HelloWorld.func6(ss,1,2) -- func6 accpet system.string as 1st parameter, you can pass "xx" or String("xx")
-	assert(ss~="bb") -- bb is luastring, ss is System.String
+	HelloWorld.func6(ss,1,2) -- func6 accpet string as 1st parameter, you can pass "xx" or String("xx")
+	assert(ss~="bb") -- bb is luastring, ss is string
 	
 	-- test luafunction
 	local h=HelloWorld()

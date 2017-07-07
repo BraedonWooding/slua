@@ -1,92 +1,106 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
+
 using SLua;
+using UnityEngine;
+
 public class Perf : MonoBehaviour
 {
+    private LuaSvr l;
 
-	LuaSvr l;
-	// Use this for initialization
-	void Start()
-	{
-		var startMem = System.GC.GetTotalMemory (true);
+    private string logText = string.Empty;
 
-		var start = Time.realtimeSinceStartup;
-		l = new LuaSvr();
-		l.init(null, () =>
-		{
-			Debug.Log ("start cost: " + (Time.realtimeSinceStartup - start));
+    // Use this for initialization
+    private void Start()
+    {
+        long startMem = System.GC.GetTotalMemory(true);
 
-			var endMem = System.GC.GetTotalMemory (true);
-			Debug.Log ("startMem: " + startMem + ", endMem: " + endMem + ", " + "cost mem: " + (endMem - startMem));
-			l.start("perf");
-		});
+        float start = Time.realtimeSinceStartup;
+        l = new LuaSvr();
+        l.Init(null, () =>
+        {
+            Debug.Log("start cost: " + (Time.realtimeSinceStartup - start));
+
+            long endMem = System.GC.GetTotalMemory(true);
+            Debug.Log("startMem: " + startMem + ", endMem: " + endMem + ", " + "cost mem: " + (endMem - startMem));
+            l.Start("perf");
+        });
 
 #if UNITY_5
-		Application.logMessageReceived += this.log;
+        Application.logMessageReceived += this.Log;
 #else
-		Application.RegisterLogCallback(this.log);
+        Application.RegisterLogCallback(this.log);
 #endif
-	}
+    }
 
-	string logText = "";
-	void log(string cond, string trace, LogType lt)
-	{
-		logText += cond;
-		logText += "\n";
-	}
+    private void Log(string cond, string trace, LogType lt)
+    {
+        logText += cond;
+        logText += "\n";
+    }
 
-	void OnGUI()
-	{
-		if (!l.inited)
-			return;
+    private void OnGUI()
+    {
+        if (!l.Initialized)
+        {
+            return;
+        }
 
-		if (GUI.Button(new Rect(10, 10, 120, 50), "Test1"))
-		{
-			logText = "";
-			l.luaState.getFunction("test1").call();
-		}
+        if (GUI.Button(new Rect(10, 10, 120, 50), "Test1"))
+        {
+            logText = string.Empty;
+            l.LUAState.GetFunction("test1").Call();
+        }
 
-		if (GUI.Button(new Rect(10, 100, 120, 50), "Test2"))
-		{
-			logText = "";
-			l.luaState.getFunction("test2").call();
-		}
+        if (GUI.Button(new Rect(10, 100, 120, 50), "Test2"))
+        {
+            logText = string.Empty;
+            l.LUAState.GetFunction("test2").Call();
+        }
 
-		if (GUI.Button(new Rect(10, 200, 120, 50), "Test3"))
-		{
-			logText = "";
-			l.luaState.getFunction("test3").call();
-		}
+        if (GUI.Button(new Rect(10, 200, 120, 50), "Test3"))
+        {
+            logText = string.Empty;
+            l.LUAState.GetFunction("test3").Call();
+        }
 
-		if (GUI.Button(new Rect(10, 300, 120, 50), "Test4"))
-		{
-			logText = "";
-			l.luaState.getFunction("test4").call();
-		}
+        if (GUI.Button(new Rect(10, 300, 120, 50), "Test4"))
+        {
+            logText = string.Empty;
+            l.LUAState.GetFunction("test4").Call();
+        }
 
-		if (GUI.Button(new Rect(200, 10, 120, 50), "Test5"))
-		{
-			logText = "";
-			l.luaState.getFunction("test5").call();
-		}
+        if (GUI.Button(new Rect(200, 10, 120, 50), "Test5"))
+        {
+            logText = string.Empty;
+            l.LUAState.GetFunction("test5").Call();
+        }
 
         if (GUI.Button(new Rect(200, 100, 120, 50), "Test6 jit"))
         {
-            logText = "";
-            l.luaState.getFunction("test6").call();
+            logText = string.Empty;
+            l.LUAState.GetFunction("test6").Call();
         }
 
-		if (GUI.Button(new Rect(200, 200, 120, 50), "Test6 non-jit"))
-		{
-			logText = "";
-			l.luaState.getFunction("test7").call();
-		}
+        if (GUI.Button(new Rect(200, 200, 120, 50), "Test6 non-jit"))
+        {
+            logText = string.Empty;
+            l.LUAState.GetFunction("test7").Call();
+        }
 
         if (GUI.Button(new Rect(10, 400, 300, 50), "Click here for detail(in Chinese)"))
-		{
-			Application.OpenURL("http://www.sineysoft.com/post/164");
-		}
+        {
+            Application.OpenURL("http://www.sineysoft.com/post/164");
+        }
 
-		GUI.Label(new Rect(400, 200, 300, 50), logText);
-	}
+        GUI.Label(new Rect(400, 200, 300, 50), logText);
+    }
 }

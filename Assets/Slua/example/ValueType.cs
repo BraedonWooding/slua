@@ -1,19 +1,28 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
+
 using SLua;
+using UnityEngine;
 
-public class ValueType : MonoBehaviour {
-
-    class Foo{}
-
-    LuaSvr l;
-	// Use this for initialization
-	void Start () {
+public class ValueType : MonoBehaviour
+{
+    private LuaSvr l;
+    // Use this for initialization
+    private void Start()
+    {
         l = new LuaSvr();
-		l.init(null, () =>
-		{
-			l.start("valuetype");
-		});
+        l.Init(null, () =>
+        {
+            l.Start("valuetype");
+        });
 
         using (LuaState newState = new LuaState())
         {
@@ -37,10 +46,9 @@ public class ValueType : MonoBehaviour {
             Assert.IsTrue((Color)table["col"] == col);
             Assert.IsTrue(table["foo"] == foo);
         }
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    }
+
+    private class Foo
+    {
+    }
 }

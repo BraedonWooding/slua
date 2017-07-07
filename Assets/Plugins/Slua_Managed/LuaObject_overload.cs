@@ -1,175 +1,181 @@
-﻿// The MIT License (MIT)
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+using System;
+using UnityEngine;
 
-
-#if !SLUA_STANDALONE
 namespace SLua
 {
-	using UnityEngine;
-	using System.Collections;
-	using System.Collections.Generic;
-	using System;
-	using System.Reflection;
-	using System.Runtime.InteropServices;
-
-	public partial class LuaObject
-	{
-
-		static public bool checkType(IntPtr l, int p, out Vector4 v)
-		{
-			float x, y, z, w;
-			if(LuaDLL.luaS_checkVector4(l, p, out x, out y, out z, out w)!=0)
-				throw new Exception(string.Format("Invalid vector4 argument at {0}", p));
-			v = new Vector4(x, y, z, w);
-			return true;
-		}
-
-
-		static public bool checkType(IntPtr l, int p, out Vector3 v)
-		{
-			float x, y, z;
-			if(LuaDLL.luaS_checkVector3(l, p, out x, out y, out z)!=0)
-				throw new Exception(string.Format("Invalid vector3 argument at {0}", p));
-			v = new Vector3(x, y, z);
-			return true;
-		}
-
-		static public bool checkType(IntPtr l, int p, out Vector2 v)
-		{
-			float x, y;
-			if(LuaDLL.luaS_checkVector2(l, p, out x, out y)!=0)
-				throw new Exception(string.Format("Invalid vector2 argument at {0}", p));
-			v = new Vector2(x, y);
-			return true;
-		}
-
-		static public bool checkType(IntPtr l, int p, out Quaternion q)
-		{
-			float x, y, z, w;
-			if(LuaDLL.luaS_checkQuaternion(l, p, out x, out y, out z, out w)!=0)
-				throw new Exception(string.Format("Invalid quaternion argument at {0}", p));
-			q = new Quaternion(x, y, z, w);
-			return true;
-		}
-
-		static public bool checkType(IntPtr l, int p, out Color c)
-		{
-			float x, y, z, w;
-			if (LuaDLL.lua_type (l, p) == LuaTypes.LUA_TUSERDATA) {
-				object o = checkObj(l,p);
-				if(o is Color32) {
-					c = (Color32)o;
-					return true;
-				}
-				throw new Exception(string.Format("Invalid color argument at {0}", p));
-			}
-			if (LuaDLL.luaS_checkColor(l, p, out x, out y, out z, out w) != 0)
-				throw new Exception(string.Format("Invalid color argument at {0}", p));
-			c = new Color(x, y, z, w);
-			return true;
-		}
-
-		static public bool checkType(IntPtr l, int p, out LayerMask lm)
-		{
-			int v;
-			checkType(l, p, out v);
-			lm = v;
-			return true;
-		}
-
-		static public bool checkParams(IntPtr l, int p, out Vector2[] pars)
-		{
-			int top = LuaDLL.lua_gettop(l);
-			if (top - p >= 0)
-			{
-				pars = new Vector2[top - p + 1];
-				for (int n = p, k = 0; n <= top; n++, k++)
-				{
-					checkType(l, n, out pars[k]);
-				}
-				return true;
-			}
-			pars = new Vector2[0];
-			return true;
-		}
-
-		public static void pushValue(IntPtr l, RaycastHit2D r)
-		{
-			pushObject(l, r);
-		}
-
-		public static void pushValue(IntPtr l, RaycastHit r)
-		{
-			pushObject(l, r);
-		}
-
-        public static void pushValue(IntPtr l, UnityEngine.AnimationState o)
+    public partial class LuaObject
+    {
+        public static bool CheckType(IntPtr ptr, int p, out Vector4 v)
         {
-            if (o == null)
-                LuaDLL.lua_pushnil(l);
-            else
-                pushObject(l, o);
+            float x, y, z, w;
+            if (LuaNativeMethods.luaS_checkVector4(ptr, p, out x, out y, out z, out w) != 0)
+            {
+                throw new Exception(string.Format("Invalid vector4 argument at {0}", p));
+            }
+
+            v = new Vector4(x, y, z, w);
+            return true;
         }
 
-        public static void pushValue(IntPtr l, UnityEngine.Object o)
-		{
-			if (o == null)
-				LuaDLL.lua_pushnil(l);
-			else
-				pushObject(l, o);
-		}
-	
-		public static void pushValue(IntPtr l, Quaternion o)
-		{
-			LuaDLL.luaS_pushQuaternion(l, o.x, o.y, o.z, o.w);
-		}
+        public static bool CheckType(IntPtr ptr, int p, out Vector3 v)
+        {
+            float x, y, z;
+            if (LuaNativeMethods.luaS_checkVector3(ptr, p, out x, out y, out z) != 0)
+            {
+                throw new Exception(string.Format("Invalid vector3 argument at {0}", p));
+            }
 
-		public static void pushValue(IntPtr l, Vector2 o)
-		{
-			LuaDLL.luaS_pushVector2(l, o.x, o.y);
-		}
+            v = new Vector3(x, y, z);
+            return true;
+        }
 
+        public static bool CheckType(IntPtr ptr, int p, out Vector2 v)
+        {
+            float x, y;
+            if (LuaNativeMethods.luaS_checkVector2(ptr, p, out x, out y) != 0)
+            {
+                throw new Exception(string.Format("Invalid vector2 argument at {0}", p));
+            }
 
+            v = new Vector2(x, y);
+            return true;
+        }
 
-		public static void pushValue(IntPtr l, Vector3 o)
-		{
-			LuaDLL.luaS_pushVector3(l, o.x, o.y, o.z);
-		}
+        public static bool CheckType(IntPtr ptr, int p, out Quaternion q)
+        {
+            float x, y, z, w;
+            if (LuaNativeMethods.luaS_checkQuaternion(ptr, p, out x, out y, out z, out w) != 0)
+            {
+                throw new Exception(string.Format("Invalid quaternion argument at {0}", p));
+            }
 
+            q = new Quaternion(x, y, z, w);
+            return true;
+        }
 
+        public static bool CheckType(IntPtr ptr, int p, out Color c)
+        {
+            float x, y, z, w;
+            if (LuaNativeMethods.lua_type(ptr, p) == LuaTypes.LUA_TUSERDATA)
+            {
+                object o = CheckObj(ptr, p);
+                if (o is Color32)
+                {
+                    c = (Color32)o;
+                    return true;
+                }
 
-		public static void pushValue(IntPtr l, Vector4 o)
-		{
-			LuaDLL.luaS_pushVector4(l, o.x, o.y, o.z, o.w);
-		}
+                throw new Exception(string.Format("Invalid color argument at {0}", p));
+            }
 
-		public static void pushValue(IntPtr l, Color o)
-		{
-			LuaDLL.luaS_pushColor(l, o.r, o.g, o.b, o.a);
-		}
+            if (LuaNativeMethods.luaS_checkColor(ptr, p, out x, out y, out z, out w) != 0)
+            {
+                throw new Exception(string.Format("Invalid color argument at {0}", p));
+            }
 
-		public static void pushValue(IntPtr l, Color32 c32) {
-			pushObject(l, c32); 
-		}
-	}
+            c = new Color(x, y, z, w);
+            return true;
+        }
+
+        public static bool CheckType(IntPtr ptr, int p, out LayerMask lm)
+        {
+            int v;
+            CheckType(ptr, p, out v);
+            lm = v;
+            return true;
+        }
+
+        public static bool CheckParams(IntPtr ptr, int p, out Vector2[] pars)
+        {
+            int top = LuaNativeMethods.lua_gettop(ptr);
+            if (top - p >= 0)
+            {
+                pars = new Vector2[top - p + 1];
+                for (int n = p, k = 0; n <= top; n++, k++)
+                {
+                    CheckType(ptr, n, out pars[k]);
+                }
+
+                return true;
+            }
+
+            pars = new Vector2[0];
+            return true;
+        }
+
+        public static void PushValue(IntPtr ptr, RaycastHit2D r)
+        {
+            PushObject(ptr, r);
+        }
+
+        public static void PushValue(IntPtr ptr, RaycastHit r)
+        {
+            PushObject(ptr, r);
+        }
+
+        public static void PushValue(IntPtr ptr, UnityEngine.AnimationState o)
+        {
+            if (o == null)
+            {
+                LuaNativeMethods.lua_pushnil(ptr);
+            }
+            else
+            {
+                PushObject(ptr, o);
+            }
+        }
+
+        public static void PushValue(IntPtr ptr, UnityEngine.Object o)
+        {
+            if (o == null)
+            {
+                LuaNativeMethods.lua_pushnil(ptr);
+            }
+            else
+            {
+                PushObject(ptr, o);
+            }
+        }
+
+        public static void PushValue(IntPtr ptr, Quaternion o)
+        {
+            LuaNativeMethods.luaS_pushQuaternion(ptr, o.x, o.y, o.z, o.w);
+        }
+
+        public static void PushValue(IntPtr ptr, Vector2 o)
+        {
+            LuaNativeMethods.luaS_pushVector2(ptr, o.x, o.y);
+        }
+
+        public static void PushValue(IntPtr ptr, Vector3 o)
+        {
+            LuaNativeMethods.luaS_pushVector3(ptr, o.x, o.y, o.z);
+        }
+
+        public static void PushValue(IntPtr ptr, Vector4 o)
+        {
+            LuaNativeMethods.luaS_pushVector4(ptr, o.x, o.y, o.z, o.w);
+        }
+
+        public static void PushValue(IntPtr ptr, Color o)
+        {
+            LuaNativeMethods.luaS_pushColor(ptr, o.r, o.g, o.b, o.a);
+        }
+
+        public static void PushValue(IntPtr ptr, Color32 c32)
+        {
+            PushObject(ptr, c32);
+        }
+    }
 }
-#endif

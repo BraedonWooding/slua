@@ -1,91 +1,126 @@
-﻿using UnityEngine;
-using System.Collections;
-using SLua;
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
+
 using System;
 using System.Collections.Generic;
+using SLua;
+using UnityEngine;
 
-[CustomLuaClassAttribute]
+[CustomLuaClass]
 public class Deleg : MonoBehaviour
 {
+    private static Action<int, Dictionary<int, object>> daction;
+    private static GetBundleInfoDelegate bundleInfoDelegate;
+    private static SimpleDelegate simpleDelegate1;
 
+    private LuaSvr l;
 
-	public delegate bool GetBundleInfoDelegate(string a1,int a2,int a3,ref System.Int32 a4,out System.String a5,out System.Int32 a6);
-	public delegate void SimpleDelegate(string path, GameObject g);
+    public delegate bool GetBundleInfoDelegate(string a1, int a2, int a3, ref int a4, out string a5, out int a6);
 
-	static public GetBundleInfoDelegate d;
-	static public SimpleDelegate s;
+    public delegate void SimpleDelegate(string path, GameObject g);
 
-	static public GetBundleInfoDelegate dx
-	{
-		get
-		{
-			return d;
-		}
-		set
-		{
-			d = value;
-		}
-	}
+    public static GetBundleInfoDelegate BundleInfo
+    {
+        get
+        {
+            return bundleInfoDelegate;
+        }
 
-	LuaSvr l;
-	// Use this for initialization
-	void Start()
-	{
-		l = new LuaSvr();
-		l.init(null,()=>{
-			l.start("delegate");
-		});
-	}
+        set
+        {
+            bundleInfoDelegate = value;
+        }
+    }
 
-	static public void callD()
-	{
-		string url;
-		int ver;
-		int c = 3;
-		if (d != null)
-		{
-			bool ret = d("/path", 1,2,ref c,out url, out ver);
-			Debug.Log(string.Format("{0},{1},{2}", ret, url, ver));
-			Debug.Assert (c == 4);
-			Debug.Assert (url == "http://www.sineysoft.com");
-			Debug.Assert (ver == 1);
-		}
-		if (s != null)
-			s("GameObject", new GameObject("SimpleDelegate"));
-	}
+    public static SimpleDelegate SimpleDelegate1
+    {
+        get
+        {
+            return simpleDelegate1;
+        }
 
-	static public void setcallback2(Action<int> a, Action<string> b)
-	{
-		if(a!=null) a(1);
-		if(b!=null) b("hello");
-	}
+        set
+        {
+            simpleDelegate1 = value;
+        }
+    }
 
-	public static void testFunc(Func<int> f)
-	{
-		Debug.Log(string.Format("Func return {0}", f()));
-	}
+    public static void CallID()
+    {
+        string url;
+        int ver;
+        int c = 3;
+        if (bundleInfoDelegate != null)
+        {
+            bool ret = bundleInfoDelegate("/path", 1, 2, ref c, out url, out ver);
+            Debug.Log(string.Format("{0},{1},{2}", ret, url, ver));
+            Debug.Assert(c == 4, "C == 4");
+            Debug.Assert(url == "http://www.sineysoft.com", "url == http://www.sinevsoft.com");
+            Debug.Assert(ver == 1, "ver == 1");
+        }
 
-	public static void testAction(Action<int, string> f)
-	{
-		f(1024, "caoliu");
-	}
+        if (SimpleDelegate1 != null)
+        {
+            SimpleDelegate1("GameObject", new GameObject("SimpleDelegate"));
+        }
+    }
 
-	public static void testDAction(Action<int, Dictionary<int, object>> f)
-	{
-		f(1024, new Dictionary<int, object>());
+    public static void SetCallback2(Action<int> a, Action<string> b)
+    {
+        if (a != null)
+        {
+            a(1);
+        }
 
-	}
+        if (b != null)
+        {
+            b("hello");
+        }
+    }
 
-	public static void callDAction()
-	{
-		if (daction != null)
-			daction(2048, new Dictionary<int, object>());
-	}
+    public static void TestFunction(Func<int> f)
+    {
+        Debug.Log(string.Format("Func return {0}", f()));
+    }
 
-	public static Action<int, Dictionary<int, object>> daction;
+    public static void TestAction(Action<int, string> f)
+    {
+        f(1024, "caoliu");
+    }
 
-	public static Func<int, string, bool> getFunc(Func<int, string, bool> f)
-	{
-		return f;
-	}
+    public static void TestDAction(Action<int, Dictionary<int, object>> f)
+    {
+        f(1024, new Dictionary<int, object>());
+    }
+
+    public static void CallDAction()
+    {
+        if (daction != null)
+        {
+            daction(2048, new Dictionary<int, object>());
+        }
+    }
+
+    public static Func<int, string, bool> GetFunc(Func<int, string, bool> f)
+    {
+        return f;
+    }
+
+    // Use this for initialization
+    public void Start()
+    {
+        l = new LuaSvr();
+        l.Init(null, () =>
+        {
+            l.Start("delegate");
+        });
+    }
 }

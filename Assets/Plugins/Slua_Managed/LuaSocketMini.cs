@@ -1,34 +1,21 @@
-﻿// The MIT License (MIT)
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+using System;
 
 namespace SLua
 {
-	using System.Collections;
-	using System.Collections.Generic;
-	using System;
-
-	public class LuaSocketMini : LuaObject
-	{
-		static string script = @"
+    public class LuaSocketMini : LuaObject
+    {
+        public static string Script = @"
 -----------------------------------------------------------------------------
 -- LuaSocket helper module
 -- Author: Diego Nehab
@@ -38,9 +25,9 @@ namespace SLua
 -- Declare module and import dependencies
 -----------------------------------------------------------------------------
 local base = _G
-local string = require(""string"")
-local math = require(""math"")
-local socket = require(""socket.core"")
+local string = require(string.Emptystringstring.Empty)
+local math = require(string.Emptymathstring.Empty)
+local socket = require(string.Emptysocket.corestring.Empty)
 
 local _M = socket
 
@@ -48,27 +35,27 @@ local _M = socket
 -- Exported auxiliar functions
 -----------------------------------------------------------------------------
 function _M.connect4(address, port, laddress, lport)
-    return socket.connect(address, port, laddress, lport, ""inet"")
+    return socket.connect(address, port, laddress, lport, string.Emptyinetstring.Empty)
 end
 
 function _M.connect6(address, port, laddress, lport)
-    return socket.connect(address, port, laddress, lport, ""inet6"")
+    return socket.connect(address, port, laddress, lport, string.Emptyinet6string.Empty)
 end
 
 function _M.bind(host, port, backlog)
-    if host == ""*"" then host = ""0.0.0.0"" end
+    if host == string.Empty*string.Empty then host = string.Empty0.0.0.0string.Empty end
     local addrinfo, err = socket.dns.getaddrinfo(host);
     if not addrinfo then return nil, err end
     local sock, res
-    err = ""no info on address""
+    err = string.Emptyno info on addressstring.Empty
     for i, alt in base.ipairs(addrinfo) do
-        if alt.family == ""inet"" then
+        if alt.family == string.Emptyinetstring.Empty then
             sock, err = socket.tcp4()
         else
             sock, err = socket.tcp6()
         end
         if not sock then return nil, err end
-        sock:setoption(""reuseaddr"", true)
+        sock:setoption(string.Emptyreuseaddrstring.Empty, true)
         res, err = sock:bind(alt.addr, port)
         if not res then
             sock:close()
@@ -88,11 +75,11 @@ _M.try = _M.newtry()
 
 function _M.choose(table)
     return function(name, opt1, opt2)
-        if base.type(name) ~= ""string"" then
-            name, opt1, opt2 = ""default"", name, opt1
+        if base.type(name) ~= string.Emptystringstring.Empty then
+            name, opt1, opt2 = string.Emptydefaultstring.Empty, name, opt1
         end
-        local f = table[name or ""nil""]
-        if not f then base.error(""unknown key ("".. base.tostring(name) .."")"", 3)
+        local f = table[name or string.Emptynilstring.Empty]
+        if not f then base.error(string.Emptyunknown key (string.Empty.. base.tostring(name) ..string.Empty)string.Empty, 3)
         else return f(opt1, opt2) end
     end
 end
@@ -107,7 +94,7 @@ _M.sinkt = sinkt
 
 _M.BLOCKSIZE = 2048
 
-sinkt[""close-when-done""] = function(sock)
+sinkt[string.Emptyclose-when-donestring.Empty] = function(sock)
     return base.setmetatable({
         getfd = function() return sock:getfd() end,
         dirty = function() return sock:dirty() end
@@ -121,7 +108,7 @@ sinkt[""close-when-done""] = function(sock)
     })
 end
 
-sinkt[""keep-open""] = function(sock)
+sinkt[string.Emptykeep-openstring.Empty] = function(sock)
     return base.setmetatable({
         getfd = function() return sock:getfd() end,
         dirty = function() return sock:dirty() end
@@ -133,11 +120,11 @@ sinkt[""keep-open""] = function(sock)
     })
 end
 
-sinkt[""default""] = sinkt[""keep-open""]
+sinkt[string.Emptydefaultstring.Empty] = sinkt[string.Emptykeep-openstring.Empty]
 
 _M.sink = _M.choose(sinkt)
 
-sourcet[""by-length""] = function(sock, length)
+sourcet[string.Emptyby-lengthstring.Empty] = function(sock, length)
     return base.setmetatable({
         getfd = function() return sock:getfd() end,
         dirty = function() return sock:dirty() end
@@ -153,7 +140,7 @@ sourcet[""by-length""] = function(sock, length)
     })
 end
 
-sourcet[""until-closed""] = function(sock)
+sourcet[string.Emptyuntil-closedstring.Empty] = function(sock)
     local done
     return base.setmetatable({
         getfd = function() return sock:getfd() end,
@@ -163,7 +150,7 @@ sourcet[""until-closed""] = function(sock)
             if done then return nil end
             local chunk, err, partial = sock:receive(socket.BLOCKSIZE)
             if not err then return chunk
-            elseif err == ""closed"" then
+            elseif err == string.Emptyclosedstring.Empty then
                 sock:close()
                 done = 1
                 return partial
@@ -173,18 +160,18 @@ sourcet[""until-closed""] = function(sock)
 end
 
 
-sourcet[""default""] = sourcet[""until-closed""]
+sourcet[string.Emptydefaultstring.Empty] = sourcet[string.Emptyuntil-closedstring.Empty]
 
 _M.source = _M.choose(sourcet)
 
 return _M
 
 ";
-		public static void reg(IntPtr l)
-		{
-			LuaState ls = LuaState.get(l);
-			ls.doString(script, "LuaSocketMini");
-		}
-	}
-}
 
+        public static void Register(IntPtr ptr)
+        {
+            LuaState ls = LuaState.Get(ptr);
+            ls.DoString(Script, "LuaSocketMini");
+        }
+    }
+}

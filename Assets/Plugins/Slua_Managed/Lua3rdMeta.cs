@@ -1,99 +1,95 @@
-﻿// The MIT License (MIT)
+﻿#region License
+// ====================================================
+// Copyright(C) 2015 Siney/Pangweiwei siney@yeah.net
+// This program comes with ABSOLUTELY NO WARRANTY; This is free software, 
+// and you are welcome to redistribute it under certain conditions; See 
+// file LICENSE, which is part of this source code package, for details.
+//
+// Braedon Wooding braedonww@gmail.com, applied major changes to this project.
+// ====================================================
+#endregion
 
-// Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-using System.Collections.Generic;
 using System;
-using System.Linq;
-using System.Reflection;
-#if !SLUA_STANDALONE
-using UnityEngine;
-#endif
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using UnityEngine;
 
-namespace SLua{
+namespace SLua
+{
+    public class Lua3rdMeta : ScriptableObject
+    {
+        private static Lua3rdMeta instance = null;
 
-	public class Lua3rdMeta
-	#if !SLUA_STANDALONE
-		:ScriptableObject
-	#endif
-	{
-		/// <summary>
-		///Cache class types here those contain 3rd dll attribute.
-		/// </summary>
-		public List<string> typesWithAttribtues = new List<string>();
+        /// <summary>
+        /// Singleton instance.
+        /// </summary>
+        public static Lua3rdMeta Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = Resources.Load<Lua3rdMeta>("lua3rdmeta");
+                }
+#if UNITY_EDITOR
+                if (instance == null)
+                {
+                    instance = ScriptableObject.CreateInstance<Lua3rdMeta>();
+                    string path = "Assets/Slua/Resources";
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
 
-		void OnEnable(){
-			#if !SLUA_STANDALONE
-			this.hideFlags = HideFlags.NotEditable;
-			#endif
-		}
-		#if UNITY_EDITOR
+                    UnityEditor.AssetDatabase.CreateAsset(instance, Path.Combine(path, "lua3rdmeta.asset"));
+                }
+#endif
+                return instance;
+            }
+        }
 
-		public void ReBuildTypes(){
-			typesWithAttribtues.Clear();
-			Assembly assembly = null;
-			foreach(var assem in AppDomain.CurrentDomain.GetAssemblies()){
-				if(assem.GetName().Name == "Assembly-CSharp"){
-					assembly = assem;
-					break;
-				}
-			}
-			if(assembly != null){
-				var types = assembly.GetExportedTypes();
-				foreach(var type in types){
-					var methods = type.GetMethods(BindingFlags.Public|BindingFlags.Static);
-					foreach(var method in methods){
-						if(method.IsDefined(typeof(Lua3rdDLL.LualibRegAttribute),false)){
-							typesWithAttribtues.Add(type.FullName);
-							break;
-						}
-					} 
-				}
-			}
-		}
+        /// <summary>
+        /// Cache class types here those contain 3rd dll attribute.
+        /// </summary>
+        public List<string> TypesWithAttributes { get; private set; }
 
-		#endif
-		private static Lua3rdMeta _instance=null;
-		public static Lua3rdMeta Instance{
-			get{
-				#if !SLUA_STANDALONE
-				if(_instance == null){
-					_instance = Resources.Load<Lua3rdMeta>("lua3rdmeta");
-				}
+        public void OnEnable()
+        {
+            this.hideFlags = HideFlags.NotEditable;
+        }
 
-				#if UNITY_EDITOR
-				if(_instance == null){
-					_instance = ScriptableObject.CreateInstance<Lua3rdMeta>();
-					string path = "Assets/Slua/Resources";
-					if(!Directory.Exists(path)){
-						Directory.CreateDirectory(path);
-					}
-					UnityEditor.AssetDatabase.CreateAsset(_instance,Path.Combine(path,"lua3rdmeta.asset"));
-				}
+#if UNITY_EDITOR
+        public void ReBuildTypes()
+        {
+            this.TypesWithAttributes = new List<string>();
+            Assembly assembly = null;
+            foreach (Assembly assem in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assem.GetName().Name == "Assembly-CSharp")
+                {
+                    assembly = assem;
+                    break;
+                }
+            }
 
-				#endif
-				#endif
-				return _instance;
-			}
-		}
-	}
+            if (assembly != null)
+            {
+                Type[] types = assembly.GetExportedTypes();
+                foreach (Type type in types)
+                {
+                    MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                    foreach (MethodInfo method in methods)
+                    {
+                        if (method.IsDefined(typeof(Lua3rdDLL.LualibRegAttribute), false))
+                        {
+                            this.TypesWithAttributes.Add(type.FullName);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+#endif
+    }
 }
