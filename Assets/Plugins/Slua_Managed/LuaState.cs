@@ -139,24 +139,11 @@ namespace SLua
 
     public class LuaDelegate : LuaFunction
     {
-        private object d;
-
         public LuaDelegate(IntPtr ptr, int r) : base(ptr, r)
         {
         }
 
-        public object D
-        {
-            get
-            {
-                return d;
-            }
-
-            set
-            {
-                d = value;
-            }
-        }
+        public object Delegate { get; set; }
 
         public override void Dispose(bool disposeManagedResources)
         {
@@ -487,6 +474,7 @@ namespace SLua
     public class LuaState : IDisposable
     {
         public WeakDictionary<int, LuaDelegate> DelegateMap = new WeakDictionary<int, LuaDelegate>();
+        public LuaSvrGameObject gameObject;
 
         private static Dictionary<IntPtr, LuaState> statemap = new Dictionary<IntPtr, LuaState>();
         private static IntPtr oldptr = IntPtr.Zero;
@@ -503,10 +491,14 @@ namespace SLua
 
         public LuaState()
         {
-            mainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
+            if (mainThread == 0)
+            {
+                mainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
+            }
 
             statePointer = LuaNativeMethods.luaL_newstate();
             statemap[statePointer] = this;
+
             if (Main == null)
             {
                 Main = this;
@@ -560,8 +552,8 @@ end
             {
                 if (!IsMainThread())
                 {
-                    Logger.LogError("Can't access lua in bg thread");
-                    throw new Exception("Can't access lua in bg thread");
+                    Logger.LogError("Can't access lua in background thread");
+                    throw new Exception("Can't access lua in background thread");
                 }
 
                 if (statePointer == IntPtr.Zero)
@@ -645,7 +637,7 @@ end
         {
             LuaNativeMethods.lua_getglobal(ptr, "debug");
             LuaNativeMethods.lua_getfield(ptr, -1, "traceback");
-            LuaNativeMethods.lua_PushValue(ptr, 1);
+            LuaNativeMethods.lua_pushvalue(ptr, 1);
             LuaNativeMethods.lua_pushnumber(ptr, 2);
             LuaNativeMethods.lua_call(ptr, 2, 1);
             LuaNativeMethods.lua_remove(ptr, -2);
@@ -669,7 +661,7 @@ end
         {
             try
             {
-                LuaNativeMethods.luaL_CheckType(ptr, 1, LuaTypes.LUA_TSTRING);
+                LuaNativeMethods.luaL_checktype(ptr, 1, LuaTypes.TYPE_STRING);
                 string str = LuaNativeMethods.lua_tostring(ptr, 1);
 
                 string[] ns = str.Split('.');
@@ -717,12 +709,12 @@ end
         public static int ProtectedCall(IntPtr ptr)
         {
             int status;
-            if (LuaNativeMethods.lua_type(ptr, 1) != LuaTypes.LUA_TFUNCTION)
+            if (LuaNativeMethods.lua_type(ptr, 1) != LuaTypes.TYPE_FUNCTION)
             {
                 return LuaObject.Error(ptr, "arg 1 expect function");
             }
 
-            LuaNativeMethods.luaL_CheckType(ptr, 1, LuaTypes.LUA_TFUNCTION);
+            LuaNativeMethods.luaL_checktype(ptr, 1, LuaTypes.TYPE_FUNCTION);
             status = LuaNativeMethods.lua_pcall(ptr, LuaNativeMethods.lua_gettop(ptr) - 1, LuaNativeMethods.LUAMultRet, 0);
             LuaNativeMethods.lua_pushboolean(ptr, status == 0);
             LuaNativeMethods.lua_insert(ptr, 1);
@@ -756,8 +748,8 @@ end
                     s.Append("    ");
                 }
 
-                LuaNativeMethods.lua_PushValue(ptr, -1);
-                LuaNativeMethods.lua_PushValue(ptr, i);
+                LuaNativeMethods.lua_pushvalue(ptr, -1);
+                LuaNativeMethods.lua_pushvalue(ptr, i);
 
                 LuaNativeMethods.lua_call(ptr, 1, 1);
                 s.Append(LuaNativeMethods.lua_tostring(ptr, -1));
@@ -798,8 +790,8 @@ end
                     s.Append("    ");
                 }
 
-                LuaNativeMethods.lua_PushValue(ptr, -1);
-                LuaNativeMethods.lua_PushValue(ptr, i);
+                LuaNativeMethods.lua_pushvalue(ptr, -1);
+                LuaNativeMethods.lua_pushvalue(ptr, i);
 
                 LuaNativeMethods.lua_call(ptr, 1, 1);
                 s.Append(LuaNativeMethods.lua_tostring(ptr, -1));
@@ -1069,7 +1061,7 @@ end
 
             LuaNativeMethods.lua_getglobal(ptr, "package");
 #if LUA_5_3
-            LuaDLL.lua_getfield(ptr, -1, "searchers");
+            LuaNativeMethods.lua_getfield(ptr, -1, "searchers");
 #else
             LuaNativeMethods.lua_getfield(ptr, -1, "loaders");
 #endif
@@ -1082,10 +1074,34 @@ end
                 LuaNativeMethods.lua_rawseti(ptr, loaderTable, e);
             }
 
-            LuaNativeMethods.lua_PushValue(ptr, loaderFunc);
+            LuaNativeMethods.lua_pushvalue(ptr, loaderFunc);
             LuaNativeMethods.lua_rawseti(ptr, loaderTable, 2);
             LuaNativeMethods.lua_settop(ptr, 0);
             return 0;
+        }
+
+        public void OpenLibrary()
+        {
+            LuaTimer.Register(StatePointer);
+            LuaCoroutine.Register(StatePointer, gameObject);
+        }
+
+        public void OpenExternalLibrary()
+        {
+            LuaNativeMethods.luaS_openextlibs(StatePointer);
+            LuaSocketMini.Register(StatePointer);
+        }
+
+        public void BindUnity()
+        {
+            LuaSvr.DoBind(StatePointer);
+            LuaValueType.Register(StatePointer);
+        }
+
+        public IEnumerator BindUnity(Action<int> tickAction, Action onComplete)
+        {
+            yield return LuaSvr.DoBind(StatePointer, tickAction, onComplete);
+            LuaValueType.Register(StatePointer);
         }
 
         public bool IsMainThread()
@@ -1095,26 +1111,23 @@ end
 
         public void Close()
         {
+            DestroyGameObject();
+
             if (StatePointer != IntPtr.Zero)
             {
-                if (LuaState.Main == this)
-                {
-                    Logger.Log("Finalizing Lua State.");
+                Logger.Log("Finalizing Lua State.");
 
-                    // be careful, if you close lua vm, make sure you don't use lua state again,
-                    // comment this line as default for avoid unexpected crash.
-                    LuaNativeMethods.lua_close(statePointer);
+                // be careful, if you close lua vm, make sure you don't use lua state again,
+                // comment this line as default for avoid unexpected crash.
+                LuaNativeMethods.lua_close(StatePointer);
 
-                    ObjectCache.Delete(statePointer);
-                    ObjectCache.Clear();
+                ObjectCache.Delete(StatePointer);
+                ObjectCache.Clear();
 
-                    statemap.Clear();
-                    oldptr = IntPtr.Zero;
-                    oldstate = null;
-                    StatePointer = IntPtr.Zero;
-
-                    LuaState.Main = null;
-                }
+                statemap.Remove(StatePointer);
+                oldptr = IntPtr.Zero;
+                oldstate = null;
+                StatePointer = IntPtr.Zero;
             }
         }
 
@@ -1198,7 +1211,7 @@ end
 
             string err = LuaNativeMethods.lua_tostring(statePointer, -1);
             LuaNativeMethods.lua_pop(statePointer, 2);
-            throw new Exception(err);
+            throw new Exception("File " + fn + ": " + err);
         }
 
         public object GetObject(string key)
@@ -1469,7 +1482,7 @@ end
                 (IntPtr ptr, object o) =>
                 {
 #if LUA_5_3
-                    LuaDLL.lua_pushinteger(ptr, (long)o);
+                    LuaNativeMethods.lua_pushinteger(ptr, (long)o);
 #else
                     LuaNativeMethods.lua_pushnumber(ptr, System.Convert.ToDouble(o));
 #endif
@@ -1504,7 +1517,7 @@ end
             if (errorRef == 0)
             {
                 LuaNativeMethods.lua_pushcfunction(statePointer, LuaState.errorFunc);
-                LuaNativeMethods.lua_PushValue(statePointer, -1);
+                LuaNativeMethods.lua_pushvalue(statePointer, -1);
                 errorRef = LuaNativeMethods.luaL_ref(statePointer, LuaIndexes.LUARegistryIndex);
             }
             else
@@ -1513,6 +1526,41 @@ end
             }
 
             return LuaNativeMethods.lua_gettop(statePointer);
+        }
+
+        public void CreateGameObject()
+        {
+            if (gameObject == null
+#if UNITY_EDITOR
+                && UnityEditor.EditorApplication.isPlaying
+#endif
+                )
+            {
+                GameObject go = new GameObject("LuaSvrProxy");
+                gameObject = go.AddComponent<LuaSvrGameObject>();
+                GameObject.DontDestroyOnLoad(go);
+                gameObject.OnUpdate = this.Tick;
+                gameObject.State = this;
+            }
+        }
+
+        public void DestroyGameObject()
+        {
+            if (gameObject == null
+#if UNITY_EDITOR
+                && UnityEditor.EditorApplication.isPlaying
+#endif
+                )
+            {
+                GameObject go = gameObject.gameObject;
+                GameObject.Destroy(go);
+                GameObject.Destroy(gameObject);
+            }
+        }
+
+        protected virtual void Tick()
+        {
+            CheckRef();
         }
 
         public struct UnrefPair

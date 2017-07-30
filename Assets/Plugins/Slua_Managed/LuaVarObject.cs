@@ -48,9 +48,9 @@ namespace SLua
                     LuaTypes t = LuaNativeMethods.lua_type(ptr, 2);
                     switch (t)
                     {
-                        case LuaTypes.LUA_TSTRING:
+                        case LuaTypes.TYPE_STRING:
                             return IndexString(ptr, self, LuaNativeMethods.lua_tostring(ptr, 2));
-                        case LuaTypes.LUA_TNUMBER:
+                        case LuaTypes.TYPE_NUMBER:
                             return IndexInt(ptr, self, LuaNativeMethods.lua_tointeger(ptr, 2));
                         default:
                             return IndexObject(ptr, self, CheckObj(ptr, 2));
@@ -58,7 +58,7 @@ namespace SLua
                 }
                 catch (Exception e)
                 {
-                    return LuaObject.Error(ptr, e);
+                    return Error(ptr, e);
                 }
             }
 
@@ -111,7 +111,7 @@ namespace SLua
                 IList<MemberInfo> mis = GetCacheMembers(t, key);
                 if (mis == null || mis.Count == 0)
                 {
-                    return LuaObject.Error(ptr, "Can't find " + key);
+                    return Error(ptr, "Can't find " + key);
                 }
 
                 LuaObject.PushValue(ptr, true);
@@ -196,7 +196,7 @@ namespace SLua
                 IList<MemberInfo> mis = GetCacheMembers(t, key);
                 if (mis == null || mis.Count == 0)
                 {
-                    return LuaObject.Error(ptr, "Can't find " + key);
+                    return Error(ptr, "Can't find " + key);
                 }
 
                 MemberInfo mi = mis[0];
@@ -216,9 +216,9 @@ namespace SLua
                         f.SetValue(self, value);
                         break;
                     case MemberTypes.Method:
-                        return LuaObject.Error(ptr, "Method can't set");
+                        return Error(ptr, "Method can't set");
                     case MemberTypes.Event:
-                        return LuaObject.Error(ptr, "Event can't set");
+                        return Error(ptr, "Event can't set");
                 }
 
                 return Ok(ptr);
@@ -324,9 +324,9 @@ namespace SLua
                     LuaTypes t = LuaNativeMethods.lua_type(ptr, 2);
                     switch (t)
                     {
-                        case LuaTypes.LUA_TSTRING:
+                        case LuaTypes.TYPE_STRING:
                             return NewIndexString(ptr, self, LuaNativeMethods.lua_tostring(ptr, 2));
-                        case LuaTypes.LUA_TNUMBER:
+                        case LuaTypes.TYPE_NUMBER:
                             return NewIndexInt(ptr, self, LuaNativeMethods.lua_tointeger(ptr, 2));
                         default:
                             return NewIndexObject(ptr, self, LuaObject.CheckVar(ptr, 2), LuaObject.CheckVar(ptr, 3));
@@ -334,7 +334,7 @@ namespace SLua
                 }
                 catch (Exception e)
                 {
-                    return LuaObject.Error(ptr, e);
+                    return Error(ptr, e);
                 }
             }
 
@@ -349,7 +349,7 @@ namespace SLua
                 }
                 catch (Exception e)
                 {
-                    return LuaObject.Error(ptr, e);
+                    return Error(ptr, e);
                 }
             }
 
@@ -374,27 +374,27 @@ namespace SLua
             {
                 if (t.IsPrimitive && t != typeof(bool))
                 {
-                    return lt == LuaTypes.LUA_TNUMBER;
+                    return lt == LuaTypes.TYPE_NUMBER;
                 }
 
                 if (t == typeof(bool))
                 {
-                    return lt == LuaTypes.LUA_TBOOLEAN;
+                    return lt == LuaTypes.TYPE_BOOLEAN;
                 }
 
                 if (t == typeof(string))
                 {
-                    return lt == LuaTypes.LUA_TSTRING;
+                    return lt == LuaTypes.TYPE_STRING;
                 }
 
                 switch (lt)
                 {
-                    case LuaTypes.LUA_TFUNCTION:
+                    case LuaTypes.TYPE_FUNCTION:
                         return t == typeof(LuaFunction) || t.BaseType == typeof(MulticastDelegate);
-                    case LuaTypes.LUA_TTABLE:
+                    case LuaTypes.TYPE_TABLE:
                         return t == typeof(LuaTable) || LuaObject.LuaTypeCheck(ptr, p, t.Name);
                     default:
-                        return lt == LuaTypes.LUA_TUSERDATA || t == typeof(object);
+                        return lt == LuaTypes.TYPE_USERDATA || t == typeof(object);
                 }
             }
 

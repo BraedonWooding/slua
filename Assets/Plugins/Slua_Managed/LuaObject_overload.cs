@@ -67,7 +67,7 @@ namespace SLua
         public static bool CheckType(IntPtr ptr, int p, out Color c)
         {
             float x, y, z, w;
-            if (LuaNativeMethods.lua_type(ptr, p) == LuaTypes.LUA_TUSERDATA)
+            if (LuaNativeMethods.lua_type(ptr, p) == LuaTypes.TYPE_USERDATA)
             {
                 object o = CheckObj(ptr, p);
                 if (o is Color32)

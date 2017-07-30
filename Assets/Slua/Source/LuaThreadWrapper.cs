@@ -19,21 +19,20 @@ namespace SLua
     {
         private IntPtr thread;
 
-        public LuaThreadWrapper(LuaFunction function)
-         : base()
+        public LuaThreadWrapper(LuaFunction function) : base()
         {
-            Debug.LogFormat("LuaThreadWrapper.ctor/1: {0}", LuaNativeMethods.lua_gettop(function.VariablePointer));
+            Logger.Log(string.Format("LuaThreadWrapper.ctor/1: {0}", LuaNativeMethods.lua_gettop(function.VariablePointer)));
             this.state = LuaState.Get(function.VariablePointer);
             this.thread = LuaNativeMethods.lua_newthread(function.VariablePointer);
             this.valueref = LuaNativeMethods.luaL_ref(function.VariablePointer, LuaIndexes.LUARegistryIndex);
             function.Push(function.VariablePointer);
             LuaNativeMethods.lua_xmove(function.VariablePointer, this.thread, 1);
-            Debug.LogFormat("LuaThreadWrapper.ctor/2: {0}", LuaNativeMethods.lua_gettop(function.VariablePointer));
+            Logger.Log(string.Format("LuaThreadWrapper.ctor/2: {0}", LuaNativeMethods.lua_gettop(function.VariablePointer)));
         }
 
         ~LuaThreadWrapper()
         {
-            Debug.Log("~LuaThreadWrapper");
+            Logger.Log("Deconstructing LuaThreadWrapper");
             this.Dispose(false);
         }
 

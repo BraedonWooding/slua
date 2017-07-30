@@ -21,10 +21,10 @@ namespace SLua
             try
             {
                 int argc = LuaNativeMethods.lua_gettop(ptr);
-                SLua.ByteArray o;
+                ByteArray o;
                 if (argc == 1)
                 {
-                    o = new SLua.ByteArray();
+                    o = new ByteArray();
                     LuaObject.PushValue(ptr, true);
                     LuaObject.PushValue(ptr, o);
                     return 2;
@@ -33,17 +33,17 @@ namespace SLua
                 {
                     byte[] a1;
                     LuaObject.CheckArray(ptr, 2, out a1);
-                    o = new SLua.ByteArray(a1);
+                    o = new ByteArray(a1);
                     LuaObject.PushValue(ptr, true);
                     LuaObject.PushValue(ptr, o);
                     return 2;
                 }
 
-                return LuaObject.Error(ptr, "New object failed.");
+                return Error(ptr, "New object failed.");
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -55,7 +55,7 @@ namespace SLua
                 int argc = LuaNativeMethods.lua_gettop(ptr);
                 if (argc == 2)
                 {
-                    SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                    ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                     byte[] a1;
                     LuaObject.CheckArray(ptr, 2, out a1);
                     self.SetData(a1);
@@ -64,13 +64,13 @@ namespace SLua
                 }
                 else if (argc == 4)
                 {
-                    SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                    ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                     byte[] a1;
                     LuaObject.CheckArray(ptr, 2, out a1);
                     int a2;
-                    LuaObject.CheckType(ptr, 3, out a2);
+                    CheckType(ptr, 3, out a2);
                     int a3;
-                    LuaObject.CheckType(ptr, 4, out a3);
+                    CheckType(ptr, 4, out a3);
                     self.SetData(a1, a2, a3);
                     LuaObject.PushValue(ptr, true);
                     return 1;
@@ -82,7 +82,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -91,14 +91,14 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 self.Clear();
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -107,7 +107,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte[] ret = self.GetData();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -115,7 +115,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -124,7 +124,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 bool ret = self.ReadBool();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -132,7 +132,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -141,7 +141,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 int ret = self.ReadInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -149,7 +149,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -158,7 +158,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 uint ret = self.ReadUnsignedInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -166,7 +166,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -175,7 +175,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 sbyte ret = self.ReadSignedChar();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -183,7 +183,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -192,7 +192,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte ret = self.ReadUnsignedChar();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -200,7 +200,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -209,7 +209,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte ret = self.ReadByte();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -217,7 +217,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -226,9 +226,9 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte[] a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.Read(ref a1);
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, a1);
@@ -236,7 +236,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -245,7 +245,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 sbyte ret = self.ReadSignedByte();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -253,7 +253,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -262,7 +262,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 short ret = self.ReadShortInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -270,7 +270,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -279,7 +279,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 ushort ret = self.ReadUnsignedShortInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -287,7 +287,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -296,7 +296,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 short ret = self.ReadShortInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -304,7 +304,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -313,7 +313,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 ushort ret = self.ReadUnsignedShortInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -321,7 +321,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -330,7 +330,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long ret = self.ReadLongInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -338,7 +338,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -347,7 +347,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 float ret = self.ReadFloat();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -355,7 +355,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -364,7 +364,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 double ret = self.ReadDouble();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -372,7 +372,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -381,7 +381,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 string ret = self.ReadString();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -389,7 +389,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -398,16 +398,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
-                SLua.ByteArray a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray a1;
+                CheckType(ptr, 2, out a1);
                 self.WriteByteArray(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -416,16 +416,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 bool a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteBool(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -434,16 +434,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 int a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteInt(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -452,35 +452,16 @@ namespace SLua
         {
             try
             {
-                int argc = LuaNativeMethods.lua_gettop(ptr);
-                if (argc == 2)
-                {
-                    SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
-                    uint a1;
-                    LuaObject.CheckType(ptr, 2, out a1);
-                    self.WriteUnsignedInt(a1);
-                    LuaObject.PushValue(ptr, true);
-                    return 1;
-                }
-                else if (argc == 3)
-                {
-                    SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
-                    uint a1;
-                    LuaObject.CheckType(ptr, 2, out a1);
-                    int a2;
-                    LuaObject.CheckType(ptr, 3, out a2);
-                    self.WriteUnsignedInt(a1, a2);
-                    LuaObject.PushValue(ptr, true);
-                    return 1;
-                }
-
-                LuaObject.PushValue(ptr, false);
-                LuaNativeMethods.lua_pushstring(ptr, "No matched override functionthis.WriteUInt to call");
-                return 2;
+                ByteArray self = (ByteArray)CheckSelf(ptr);
+                uint value;
+                CheckType(ptr, 2, out value);
+                self.WriteUnsignedInt(value);
+                PushValue(ptr, true);
+                return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -489,16 +470,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 sbyte a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteSByte(a1);
-                LuaObject.PushValue(ptr, true);
+                PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -507,16 +488,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteByte(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -525,16 +506,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteByte(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -543,16 +524,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 sbyte a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteSByte(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -561,16 +542,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 ushort a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteUnsignedShortInt(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -579,16 +560,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 short a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteShortInt(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -597,16 +578,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 float a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteFloat(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -615,16 +596,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 double a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteDouble(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -633,16 +614,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 string a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteString(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -651,16 +632,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteLongInt(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -669,7 +650,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long ret = self.ReadVarInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -677,7 +658,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -686,16 +667,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteVarInt(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -704,7 +685,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long ret = self.ReadInt48();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -712,7 +693,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -721,7 +702,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long ret = self.ReadInt48L();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -729,7 +710,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -738,16 +719,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 long a1;
-                LuaObject.CheckType(ptr, 2, out a1);
+                CheckType(ptr, 2, out a1);
                 self.WriteInt48(a1);
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -756,7 +737,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 ByteArray ret = self.ReadByteArray();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -764,7 +745,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -773,7 +754,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 ulong ret = self.ReadUnsignedLongInt();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -781,7 +762,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -790,7 +771,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte[] ret = self.ReadBytes();
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, ret);
@@ -798,7 +779,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -807,7 +788,7 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 byte[] a1;
                 LuaObject.CheckArray(ptr, 2, out a1);
                 self.WriteBytes(a1);
@@ -816,7 +797,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -825,14 +806,14 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, self.Length);
                 return 2;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -841,14 +822,14 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 LuaObject.PushValue(ptr, true);
                 LuaObject.PushValue(ptr, self.Position);
                 return 2;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -857,16 +838,16 @@ namespace SLua
         {
             try
             {
-                SLua.ByteArray self = (SLua.ByteArray)LuaObject.CheckSelf(ptr);
+                ByteArray self = (ByteArray)LuaObject.CheckSelf(ptr);
                 int v;
-                LuaObject.CheckType(ptr, 2, out v);
+                CheckType(ptr, 2, out v);
                 self.Position = v;
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -917,7 +898,7 @@ namespace SLua
             LuaObject.AddMember(ptr, WriteBytes);
             LuaObject.AddMember(ptr, "Length", GetLength, null, true);
             LuaObject.AddMember(ptr, "Position", GetPosition, SetPosition, true);
-            LuaObject.CreateTypeMetatable(ptr, Constructor, typeof(SLua.ByteArray));
+            LuaObject.CreateTypeMetatable(ptr, Constructor, typeof(ByteArray));
         }
     }
 }

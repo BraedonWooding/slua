@@ -59,7 +59,7 @@ public class Test : MonoBehaviour
         {
             LuaTests t = new LuaTests()
             {
-                lua = l.LUAState
+                lua = LuaSvr.MainState
             };
 
             t.lua.DoString("TestClass=NLuaTest.Mock.TestClass");

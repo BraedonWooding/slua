@@ -1,6 +1,3 @@
-
-
-
 function xx(path,a,b,c)
 	assert(c==4) -- modified by first delegation, it is ref value
 	print(2,path,a,b,c)

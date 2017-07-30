@@ -17,7 +17,11 @@ using UnityEngine;
 [CustomLuaClass]
 public class Deleg : MonoBehaviour
 {
+    // This is edited, through LUA
+#pragma warning disable 0649 // Disable not changed warning
     private static Action<int, Dictionary<int, object>> daction;
+#pragma warning restore 0649
+
     private static GetBundleInfoDelegate bundleInfoDelegate;
     private static SimpleDelegate simpleDelegate1;
 

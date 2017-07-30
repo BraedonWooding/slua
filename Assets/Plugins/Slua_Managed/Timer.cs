@@ -87,6 +87,11 @@ namespace SLua
 
         public static void Tick(float deltaTime)
         {
+            if (ExecuteTimers == null)
+            {
+                return;
+            }
+
             NowTime += deltaTime;
             PileSecs += deltaTime;
             int cycle = 0;
@@ -224,7 +229,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -238,12 +243,12 @@ namespace SLua
                 {
                     int delay;
                     CheckType(ptr, 1, out delay);
-                    LuaDelegate ld;
-                    CheckType(ptr, 2, out ld);
+                    LuaDelegate luaDelegate;
+                    CheckType(ptr, 2, out luaDelegate);
                     Action<int> ua;
-                    if (ld.D != null)
+                    if (luaDelegate.Delegate != null)
                     {
-                        ua = (Action<int>)ld.D;
+                        ua = (Action<int>)luaDelegate.Delegate;
                     }
                     else
                     {
@@ -252,12 +257,12 @@ namespace SLua
                         {
                             int error = PushTry(ml);
                             LuaObject.PushValue(ml, id);
-                            ld.ProtectedCall(1, error);
+                            luaDelegate.ProtectedCall(1, error);
                             LuaNativeMethods.lua_settop(ml, error - 1);
                         };
                     }
 
-                    ld.D = ua;
+                    luaDelegate.Delegate = ua;
                     LuaObject.PushValue(ptr, true);
                     LuaObject.PushValue(ptr, Add(delay, ua));
                     return 2;
@@ -267,13 +272,13 @@ namespace SLua
                     int delay, cycle;
                     CheckType(ptr, 1, out delay);
                     CheckType(ptr, 2, out cycle);
-                    LuaDelegate ld;
-                    CheckType(ptr, 3, out ld);
+                    LuaDelegate luaDelegate;
+                    CheckType(ptr, 3, out luaDelegate);
                     Func<int, bool> ua;
 
-                    if (ld.D != null)
+                    if (luaDelegate.Delegate != null)
                     {
-                        ua = (Func<int, bool>)ld.D;
+                        ua = (Func<int, bool>)luaDelegate.Delegate;
                     }
                     else
                     {
@@ -282,24 +287,24 @@ namespace SLua
                         {
                             int error = PushTry(ml);
                             LuaObject.PushValue(ml, id);
-                            ld.ProtectedCall(1, error);
+                            luaDelegate.ProtectedCall(1, error);
                             bool ret = LuaNativeMethods.lua_toboolean(ml, -1);
                             LuaNativeMethods.lua_settop(ml, error - 1);
                             return ret;
                         };
                     }
 
-                    ld.D = ua;
+                    luaDelegate.Delegate = ua;
                     LuaObject.PushValue(ptr, true);
                     LuaObject.PushValue(ptr, Add(delay, cycle, ua));
                     return 2;
                 }
 
-                return LuaObject.Error(ptr, "Argument error");
+                return Error(ptr, "Argument error");
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -325,7 +330,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 

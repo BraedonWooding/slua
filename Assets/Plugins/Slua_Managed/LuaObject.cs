@@ -274,8 +274,8 @@ return index
         public static int LuaOp(IntPtr ptr, string f, string tip)
         {
             int err = GetOpFunction(ptr, f, tip);
-            LuaNativeMethods.lua_PushValue(ptr, 1);
-            LuaNativeMethods.lua_PushValue(ptr, 2);
+            LuaNativeMethods.lua_pushvalue(ptr, 1);
+            LuaNativeMethods.lua_pushvalue(ptr, 2);
             if (LuaNativeMethods.lua_pcall(ptr, 2, 1, err) != 0)
             {
                 LuaNativeMethods.lua_pop(ptr, 1);
@@ -290,7 +290,7 @@ return index
         public static int LuaUnaryOp(IntPtr ptr, string f, string tip)
         {
             int err = GetOpFunction(ptr, f, tip);
-            LuaNativeMethods.lua_PushValue(ptr, 1);
+            LuaNativeMethods.lua_pushvalue(ptr, 1);
             if (LuaNativeMethods.lua_pcall(ptr, 1, 1, err) != 0)
             {
                 LuaNativeMethods.lua_pop(ptr, 1);
@@ -435,7 +435,7 @@ return index
                     LuaNativeMethods.lua_pop(ptr, 1);
                     LuaNativeMethods.lua_createtable(ptr, 0, 0);
                     LuaNativeMethods.lua_pushstring(ptr, t);
-                    LuaNativeMethods.lua_PushValue(ptr, -2);
+                    LuaNativeMethods.lua_pushvalue(ptr, -2);
                     LuaNativeMethods.lua_rawset(ptr, -4);
                 }
 
@@ -526,7 +526,7 @@ return index
             LuaNativeMethods.lua_pushcfunction(ptr, TypeToString);
             LuaNativeMethods.lua_setfield(ptr, -2, "__tostring");
 
-            LuaNativeMethods.lua_PushValue(ptr, -1);
+            LuaNativeMethods.lua_pushvalue(ptr, -1);
             LuaNativeMethods.lua_setmetatable(ptr, -3);
 
             LuaNativeMethods.lua_setfield(ptr, LuaIndexes.LUARegistryIndex, self.FullName);
@@ -627,31 +627,33 @@ return index
             }
             else if (t == typeof(char[]) || t == typeof(byte[]))
             {
-                return lt == LuaTypes.LUA_TSTRING;
+                return lt == LuaTypes.TYPE_STRING;
             }
 
             switch (lt)
             {
-                case LuaTypes.LUA_TNIL:
+                case LuaTypes.TYPE_NIL:
                     return !t.IsValueType && !t.IsPrimitive;
-                case LuaTypes.LUA_TNUMBER:
+                case LuaTypes.TYPE_NUMBER:
 #if LUA_5_3
-                    if (LuaDLL.lua_isinteger(ptr, p) > 0)
+                    if (LuaNativeMethods.lua_isinteger(ptr, p) > 0) {
                         return (t.IsPrimitive && t != typeof(float) && t != typeof(double)) || t.IsEnum;
-                    else
+                    }
+                    else {
                         return t == typeof(float) || t == typeof(double);
+                    }
 #else
                     return t.IsPrimitive || t.IsEnum;
 #endif
-                case LuaTypes.LUA_TUSERDATA:
+                case LuaTypes.TYPE_USERDATA:
                     object o = CheckObj(ptr, p);
                     Type ot = o.GetType();
                     return ot == t || ot.IsSubclassOf(t) || t.IsAssignableFrom(ot);
-                case LuaTypes.LUA_TSTRING:
+                case LuaTypes.TYPE_STRING:
                     return t == typeof(string);
-                case LuaTypes.LUA_TBOOLEAN:
+                case LuaTypes.TYPE_BOOLEAN:
                     return t == typeof(bool);
-                case LuaTypes.LUA_TTABLE:
+                case LuaTypes.TYPE_TABLE:
                     if (t == typeof(LuaTable) || t.IsArray)
                     {
                         return true;
@@ -669,9 +671,9 @@ return index
                         return false;
                     }
 
-                case LuaTypes.LUA_TFUNCTION:
+                case LuaTypes.TYPE_FUNCTION:
                     return t == typeof(LuaFunction) || t.BaseType == typeof(MulticastDelegate);
-                case LuaTypes.LUA_TTHREAD:
+                case LuaTypes.TYPE_THREAD:
                     return t == typeof(LuaThread);
             }
 
@@ -680,7 +682,7 @@ return index
 
         public static bool IsTypeTable(IntPtr ptr, int p)
         {
-            if (LuaNativeMethods.lua_type(ptr, p) != LuaTypes.LUA_TTABLE)
+            if (LuaNativeMethods.lua_type(ptr, p) != LuaTypes.TYPE_TABLE)
             {
                 return false;
             }
@@ -880,11 +882,11 @@ return index
         {
             LuaState state = LuaState.Get(ptr);
 
-            LuaNativeMethods.lua_PushValue(ptr, p); // push function
+            LuaNativeMethods.lua_pushvalue(ptr, p); // push function
 
             int fref = LuaNativeMethods.luaL_ref(ptr, LuaIndexes.LUARegistryIndex); // new ref function
             LuaDelegate f = new LuaDelegate(ptr, fref);
-            LuaNativeMethods.lua_PushValue(ptr, p);
+            LuaNativeMethods.lua_pushvalue(ptr, p);
             LuaNativeMethods.lua_pushinteger(ptr, fref);
             LuaNativeMethods.lua_settable(ptr, -3); // __LuaDelegate[func]= fref
             state.DelegateMap[fref] = f;
@@ -908,7 +910,7 @@ return index
 
         public static bool CheckArray<T>(IntPtr ptr, int p, out T[] ta)
         {
-            if (LuaNativeMethods.lua_type(ptr, p) == LuaTypes.LUA_TTABLE)
+            if (LuaNativeMethods.lua_type(ptr, p) == LuaTypes.TYPE_TABLE)
             {
                 int n = LuaNativeMethods.lua_rawlen(ptr, p);
                 ta = new T[n];
@@ -1033,7 +1035,7 @@ return index
 
         public static bool CheckParams(IntPtr ptr, int p, out char[] pars)
         {
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TSTRING);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_STRING);
             string s;
             CheckType(ptr, p, out s);
             pars = s.ToCharArray();
@@ -1079,20 +1081,20 @@ return index
             LuaTypes type = LuaNativeMethods.lua_type(ptr, p);
             switch (type)
             {
-                case LuaTypes.LUA_TNUMBER:
+                case LuaTypes.TYPE_NUMBER:
                     return LuaNativeMethods.lua_tonumber(ptr, p);
-                case LuaTypes.LUA_TSTRING:
+                case LuaTypes.TYPE_STRING:
                     return LuaNativeMethods.lua_tostring(ptr, p);
-                case LuaTypes.LUA_TBOOLEAN:
+                case LuaTypes.TYPE_BOOLEAN:
                     return LuaNativeMethods.lua_toboolean(ptr, p);
-                case LuaTypes.LUA_TFUNCTION:
+                case LuaTypes.TYPE_FUNCTION:
                     {
                         LuaFunction v;
-                        LuaObject.CheckType(ptr, p, out v);
+                        CheckType(ptr, p, out v);
                         return v;
                     }
 
-                case LuaTypes.LUA_TTABLE:
+                case LuaTypes.TYPE_TABLE:
                     {
                         if (IsLuaValueType(ptr, p))
                         {
@@ -1142,12 +1144,12 @@ return index
                         }
                     }
 
-                case LuaTypes.LUA_TUSERDATA:
+                case LuaTypes.TYPE_USERDATA:
                     return LuaObject.CheckObj(ptr, p);
-                case LuaTypes.LUA_TTHREAD:
+                case LuaTypes.TYPE_THREAD:
                     {
                         LuaThread lt;
-                        LuaObject.CheckType(ptr, p, out lt);
+                        CheckType(ptr, p, out lt);
                         return lt;
                     }
 
@@ -1254,12 +1256,12 @@ return index
             LuaTypes t = LuaNativeMethods.lua_type(ptr, p);
             switch (t)
             {
-                case LuaTypes.LUA_TNIL:
-                case LuaTypes.LUA_TUSERDATA:
+                case LuaTypes.TYPE_NIL:
+                case LuaTypes.TYPE_USERDATA:
                     op = 0;
                     break;
 
-                case LuaTypes.LUA_TTABLE:
+                case LuaTypes.TYPE_TABLE:
 
                     LuaNativeMethods.lua_rawgeti(ptr, p, 1);
                     LuaNativeMethods.lua_pushstring(ptr, "+=");
@@ -1275,8 +1277,8 @@ return index
                     LuaNativeMethods.lua_pop(ptr, 2);
                     LuaNativeMethods.lua_rawgeti(ptr, p, 2);
                     break;
-                case LuaTypes.LUA_TFUNCTION:
-                    LuaNativeMethods.lua_PushValue(ptr, p);
+                case LuaTypes.TYPE_FUNCTION:
+                    LuaNativeMethods.lua_pushvalue(ptr, p);
                     break;
                 default:
                     throw new Exception("expect valid Delegate");
@@ -1470,7 +1472,7 @@ return index
 
             if (self.IsValueType && IsImplByLua(self))
             {
-                LuaNativeMethods.lua_PushValue(ptr, -1);
+                LuaNativeMethods.lua_pushvalue(ptr, -1);
                 LuaNativeMethods.lua_setglobal(ptr, self.FullName + ".Instance");
             }
 

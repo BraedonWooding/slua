@@ -104,7 +104,7 @@ return Class
                 return 2;
             }
 
-            return LuaObject.Error(ptr, "passed in object isn't enumerable");
+            return Error(ptr, "passed in object isn't enumerable");
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ return Class
             try
             {
                 LuaFunction func;
-                LuaObject.CheckType(ptr, 1, out func);
+                CheckType(ptr, 1, out func);
                 Action action = new Action(() =>
                 {
                     func.Call();
@@ -128,7 +128,7 @@ return Class
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -138,11 +138,11 @@ return Class
             try
             {
                 string cls;
-                LuaObject.CheckType(ptr, 1, out cls);
+                CheckType(ptr, 1, out cls);
                 Type t = LuaObject.FindType(cls);
                 if (t == null)
                 {
-                    return LuaObject.Error(ptr, string.Format("Can't find {0} to create", cls));
+                    return Error(ptr, string.Format("Can't find {0} to create", cls));
                 }
 
                 ConstructorInfo[] cis = t.GetConstructors();
@@ -177,7 +177,7 @@ return Class
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -187,11 +187,11 @@ return Class
             try
             {
                 string cls;
-                LuaObject.CheckType(ptr, 1, out cls);
+                CheckType(ptr, 1, out cls);
                 Type t = LuaObject.FindType(cls);
                 if (t == null)
                 {
-                    return LuaObject.Error(ptr, "Can't find {0} to create", cls);
+                    return Error(ptr, "Can't find {0} to create", cls);
                 }
 
                 LuaClassObject co = new LuaClassObject(t);
@@ -201,7 +201,7 @@ return Class
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -221,7 +221,7 @@ return Class
             }
             catch (System.Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -253,7 +253,7 @@ return Class
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -263,8 +263,8 @@ return Class
             try
             {
                 Type t;
-                LuaObject.CheckType(ptr, 1, out t);
-                LuaNativeMethods.luaL_CheckType(ptr, 2, LuaTypes.LUA_TTABLE);
+                CheckType(ptr, 1, out t);
+                LuaNativeMethods.luaL_checktype(ptr, 2, LuaTypes.TYPE_TABLE);
                 int n = LuaNativeMethods.lua_rawlen(ptr, 2);
                 Array array = Array.CreateInstance(t, n);
                 for (int k = 0; k < n; k++)
@@ -281,7 +281,7 @@ return Class
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -292,19 +292,19 @@ return Class
             {
                 if (!LuaObject.IsTypeTable(ptr, 2))
                 {
-                    return LuaObject.Error(ptr, "No matched type of param 2");
+                    return Error(ptr, "No matched type of param 2");
                 }
 
                 string meta = LuaNativeMethods.lua_tostring(ptr, -1);
                 LuaNativeMethods.luaL_getmetatable(ptr, meta);
                 LuaNativeMethods.lua_setmetatable(ptr, 1);
                 LuaObject.PushValue(ptr, true);
-                LuaNativeMethods.lua_PushValue(ptr, 1);
+                LuaNativeMethods.lua_pushvalue(ptr, 1);
                 return 2;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -316,11 +316,11 @@ return Class
                 LuaTypes t = LuaNativeMethods.lua_type(ptr, 1);
                 LuaObject.PushValue(ptr, true);
 
-                if (t == LuaTypes.LUA_TNIL)
+                if (t == LuaTypes.TYPE_NIL)
                 {
                     LuaObject.PushValue(ptr, true);
                 }
-                else if (t == LuaTypes.LUA_TUSERDATA || LuaObject.IsLuaClass(ptr, 1))
+                else if (t == LuaTypes.TYPE_USERDATA || LuaObject.IsLuaClass(ptr, 1))
                 {
                     // LUA_TUSERDATA or LUA_TTABLE(Class inherited from Unity Native)
                     object o = LuaObject.CheckObj(ptr, 1);
@@ -342,7 +342,7 @@ return Class
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 

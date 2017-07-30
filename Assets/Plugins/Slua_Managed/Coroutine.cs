@@ -68,19 +68,19 @@ UnityEngine.Yield = uCoroutine.yield
             {
                 if (LuaNativeMethods.lua_pushthread(ptr) == 1)
                 {
-                    return LuaObject.Error(ptr, "should put Yield call into lua coroutine.");
+                    return Error(ptr, "should put Yield call into lua coroutine.");
                 }
 
                 object y = CheckObj(ptr, 1);
                 LuaFunction f;
-                LuaObject.CheckType(ptr, 2, out f);
+                CheckType(ptr, 2, out f);
                 Behaviour.StartCoroutine(YieldReturn(y, f));
                 LuaObject.PushValue(ptr, true);
                 return 1;
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 

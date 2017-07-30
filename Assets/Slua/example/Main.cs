@@ -45,14 +45,14 @@ public class Main : MonoBehaviour
     public void Complete()
     {
         l.Start("main");
-        object o = l.LUAState.GetFunction("foo").Call(1, 2, 3);
+        object o = LuaSvr.MainState.GetFunction("foo").Call(1, 2, 3);
         object[] array = (object[])o;
         for (int n = 0; n < array.Length; n++)
         {
             Debug.Log(array[n]);
         }
 
-        string s = (string)l.LUAState.GetFunction("str").Call(new object[0]);
+        string s = (string)LuaSvr.MainState.GetFunction("str").Call(new object[0]);
         Debug.Log(s);
     }
 

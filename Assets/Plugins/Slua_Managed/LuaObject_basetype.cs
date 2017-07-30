@@ -110,7 +110,7 @@ namespace SLua
 
         public static bool CheckArray(IntPtr ptr, int p, out char[] pars)
         {
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TSTRING);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_STRING);
             string s;
             CheckType(ptr, p, out s);
             pars = s.ToCharArray();
@@ -229,7 +229,7 @@ namespace SLua
         #region bool
         public static bool CheckType(IntPtr ptr, int p, out bool v)
         {
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TBOOLEAN);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_BOOLEAN);
             v = LuaNativeMethods.lua_toboolean(ptr, p);
             return true;
         }
@@ -295,10 +295,10 @@ namespace SLua
             LuaState state = LuaState.Get(ptr);
 
             p = LuaNativeMethods.lua_absindex(ptr, p);
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TFUNCTION);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_FUNCTION);
 
             LuaNativeMethods.lua_getglobal(ptr, DelgateTable);
-            LuaNativeMethods.lua_PushValue(ptr, p);
+            LuaNativeMethods.lua_pushvalue(ptr, p);
             LuaNativeMethods.lua_gettable(ptr, -2); // find function in __LuaDelegate table
 
             if (LuaNativeMethods.lua_isnil(ptr, -1))
@@ -329,8 +329,8 @@ namespace SLua
                 return true;
             }
 
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TTHREAD);
-            LuaNativeMethods.lua_PushValue(ptr, p);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_THREAD);
+            LuaNativeMethods.lua_pushvalue(ptr, p);
             int fref = LuaNativeMethods.luaL_ref(ptr, LuaIndexes.LUARegistryIndex);
             lt = new LuaThread(ptr, fref);
             return true;
@@ -344,8 +344,8 @@ namespace SLua
                 return true;
             }
 
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TFUNCTION);
-            LuaNativeMethods.lua_PushValue(ptr, p);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_FUNCTION);
+            LuaNativeMethods.lua_pushvalue(ptr, p);
             int fref = LuaNativeMethods.luaL_ref(ptr, LuaIndexes.LUARegistryIndex);
             f = new LuaFunction(ptr, fref);
             return true;
@@ -359,8 +359,8 @@ namespace SLua
                 return true;
             }
 
-            LuaNativeMethods.luaL_CheckType(ptr, p, LuaTypes.LUA_TTABLE);
-            LuaNativeMethods.lua_PushValue(ptr, p);
+            LuaNativeMethods.luaL_checktype(ptr, p, LuaTypes.TYPE_TABLE);
+            LuaNativeMethods.lua_pushvalue(ptr, p);
             int fref = LuaNativeMethods.luaL_ref(ptr, LuaIndexes.LUARegistryIndex);
             t = new LuaTable(ptr, fref);
             return true;
@@ -416,7 +416,7 @@ namespace SLua
             LuaTypes lt = LuaNativeMethods.lua_type(ptr, p);
             switch (lt)
             {
-                case LuaTypes.LUA_TUSERDATA:
+                case LuaTypes.TYPE_USERDATA:
                     object o = CheckObj(ptr, p);
                     if (o.GetType() != monoType)
                     {
@@ -425,7 +425,7 @@ namespace SLua
 
                     t = (Type)o;
                     return true;
-                case LuaTypes.LUA_TTABLE:
+                case LuaTypes.TYPE_TABLE:
                     LuaNativeMethods.lua_pushstring(ptr, "__type");
                     LuaNativeMethods.lua_rawget(ptr, p);
                     if (!LuaNativeMethods.lua_isnil(ptr, -1))
@@ -444,7 +444,7 @@ namespace SLua
 
                     break;
 
-                case LuaTypes.LUA_TSTRING:
+                case LuaTypes.TYPE_STRING:
                     CheckType(ptr, p, out tname);
                     break;
             }
@@ -455,7 +455,7 @@ namespace SLua
             }
 
             t = LuaObject.FindType(tname);
-            if (t != null && lt == LuaTypes.LUA_TTABLE)
+            if (t != null && lt == LuaTypes.TYPE_TABLE)
             {
                 LuaNativeMethods.lua_pushstring(ptr, "__type");
                 PushLightObject(ptr, t);

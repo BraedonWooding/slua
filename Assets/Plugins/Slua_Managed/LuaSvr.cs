@@ -28,27 +28,42 @@ namespace SLua
         LSF_3RDDLL,
     }
 
+    public class MainState : LuaState
+    {
+        private int errorReported = 0;
+
+        public void CheckTop()
+        {
+            if (LuaNativeMethods.lua_gettop(StatePointer) != errorReported)
+            {
+                errorReported = LuaNativeMethods.lua_gettop(StatePointer);
+                Logger.LogError(string.Format("Some function not remove temp value({0}) from lua stack. You should fix it.", LuaNativeMethods.luaL_typename(StatePointer, errorReported)));
+            }
+        }
+
+        protected override void Tick()
+        {
+            base.Tick();
+            LuaTimer.Tick(Time.deltaTime);
+            CheckTop();
+        }
+    }
+
     public class LuaSvr
     {
-        protected static LuaSvrGameObject lgo;
-        protected int errorReported = 0;
+        public static MainState MainState { get; private set; }
 
         public LuaSvr()
         {
-            LuaState luaState = new LuaState();
-            this.LUAState = luaState;
+            MainState = new MainState();
         }
-
-        public bool Initialized { get; private set; }
-
-        public LuaState LUAState { get; private set; }
 
         public object Start(string main)
         {
             if (main != null)
             {
-                LUAState.DoFile(main);
-                using (LuaFunction func = (LuaFunction)LUAState["main"])
+                MainState.DoFile(main);
+                using (LuaFunction func = (LuaFunction)MainState["main"])
                 {
                     if (func != null)
                     {
@@ -60,67 +75,67 @@ namespace SLua
             return null;
         }
 
-        public void Tick()
-        {
-            if (!Initialized)
-            {
-                return;
-            }
-
-            if (LuaNativeMethods.lua_gettop(LUAState.StatePointer) != errorReported)
-            {
-                errorReported = LuaNativeMethods.lua_gettop(LUAState.StatePointer);
-                Logger.LogError(string.Format("Some function not remove temp value({0}) from lua stack. You should fix it.", LuaNativeMethods.luaL_typename(LUAState.StatePointer, errorReported)));
-            }
-
-            LUAState.CheckRef();
-            LuaTimer.Tick(Time.deltaTime);
-        }
-
         public void Init(Action<int> tick, Action complete, LuaSvrFlag flag = LuaSvrFlag.LSF_BASIC | LuaSvrFlag.LSF_EXTLIB)
         {
-            if (lgo == null)
-            {
-#if UNITY_EDITOR
-                if (UnityEditor.EditorApplication.isPlaying)
-                {
-                    GameObject go = new GameObject("LuaSvrProxy");
-                    lgo = go.AddComponent<LuaSvrGameObject>();
-                    GameObject.DontDestroyOnLoad(go);
-                }
-#else
-                GameObject go = new GameObject("LuaSvrProxy");
-                lgo = go.AddComponent<LuaSvrGameObject>();
-                GameObject.DontDestroyOnLoad(go);
-#endif
-            }
-
-            IntPtr ptr = LUAState.StatePointer;
+            IntPtr ptr = MainState.StatePointer;
             LuaObject.Init(ptr);
 
 #if UNITY_EDITOR
             if (!UnityEditor.EditorApplication.isPlaying)
             {
                 DoBind(ptr);
-                DoInit(ptr, flag);
+                DoInit(MainState, flag);
                 complete();
-                CheckTop(ptr);
+                MainState.CheckTop();
             }
             else
             {
 #endif
-                lgo.StartCoroutine(DoBind(ptr, tick, () =>
+                MainState.gameObject.StartCoroutine(DoBind(ptr, tick, () =>
                     {
-                        DoInit(ptr, flag);
+                        DoInit(MainState, flag);
                         complete();
-                        CheckTop(ptr);
+                        MainState.CheckTop();
                     }));
 #if UNITY_EDITOR
             }
 #endif
         }
 
-        public List<Action<IntPtr>> CollectBindInfo()
+        public static IEnumerator DoBind(IntPtr ptr, Action<int> tickAction, Action complete)
+        {
+            Action<int> tick = (int p) =>
+            {
+                if (tickAction != null)
+                {
+                    tickAction(p);
+                }
+            };
+
+            tick(0);
+            List<Action<IntPtr>> list = CollectBindInfo();
+            tick(2);
+
+            int bindProgress = 2;
+            int lastProgress = bindProgress;
+            for (int n = 0; n < list.Count; n++)
+            {
+                Action<IntPtr> action = list[n];
+                action(ptr);
+                bindProgress = (int)(((float)n / list.Count) * 98.0) + 2;
+                if (tickAction != null && lastProgress != bindProgress && bindProgress % 5 == 0)
+                {
+                    lastProgress = bindProgress;
+                    tick(bindProgress);
+                    yield return null;
+                }
+            }
+
+            tick(100);
+            complete();
+        }
+
+        public static List<Action<IntPtr>> CollectBindInfo()
         {
             List<Action<IntPtr>> list = new List<Action<IntPtr>>();
 
@@ -176,7 +191,7 @@ namespace SLua
             return list;
         }
 
-        protected void DoBind(IntPtr ptr)
+        public static void DoBind(IntPtr ptr)
         {
             List<Action<IntPtr>> list = CollectBindInfo();
 
@@ -199,82 +214,20 @@ namespace SLua
             return new Action<IntPtr>[0];
         }
 
-        protected void DoInit(IntPtr ptr, LuaSvrFlag flag)
+        protected void DoInit(LuaState state, LuaSvrFlag flag)
         {
-            LuaTimer.Register(ptr);
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPlaying)
-            {
-                LuaCoroutine.Register(ptr, lgo);
-            }
-#else
-            Lua_SLua_ByteArray.reg(ptr);
-#endif
-            Helper.Register(ptr);
-            LuaValueType.Register(ptr);
+            state.OpenLibrary();
+            LuaValueType.Register(state.StatePointer);
+
             if ((flag & LuaSvrFlag.LSF_EXTLIB) != 0)
             {
-                LuaNativeMethods.luaS_openextlibs(ptr);
-                LuaSocketMini.Register(ptr);
+                state.OpenExternalLibrary();
             }
 
             if ((flag & LuaSvrFlag.LSF_3RDDLL) != 0)
             {
-                Lua3rdDLL.Open(ptr);
+                Lua3rdDLL.Open(state.StatePointer);
             }
-
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPlaying)
-            {
-#endif
-                lgo.State = LUAState;
-                lgo.OnUpdate = this.Tick;
-                lgo.Init();
-#if UNITY_EDITOR
-            }
-#endif
-            Initialized = true;
-        }
-
-        protected void CheckTop(IntPtr ptr)
-        {
-            if (LuaNativeMethods.lua_gettop(LUAState.StatePointer) != errorReported)
-            {
-                Logger.LogError("Some function not remove temp value from lua stack. You should fix it.");
-                errorReported = LuaNativeMethods.lua_gettop(LUAState.StatePointer);
-            }
-        }
-
-        private IEnumerator DoBind(IntPtr ptr, Action<int> tickAction, Action complete)
-        {
-            Action<int> tick = (int p) =>
-            {
-                if (tickAction != null)
-                {
-                    tickAction(p);
-                }
-            };
-
-            tick(0);
-            List<Action<IntPtr>> list = CollectBindInfo();
-            tick(2);
-
-            int bindProgress = 2;
-            int lastProgress = bindProgress;
-            for (int n = 0; n < list.Count; n++)
-            {
-                Action<IntPtr> action = list[n];
-                action(ptr);
-                bindProgress = (int)(((float)n / list.Count) * 98.0) + 2;
-                if (tickAction != null && lastProgress != bindProgress && bindProgress % 5 == 0)
-                {
-                    tick(bindProgress);
-                    yield return null;
-                }
-            }
-
-            tick(100);
-            complete();
         }
     }
 }

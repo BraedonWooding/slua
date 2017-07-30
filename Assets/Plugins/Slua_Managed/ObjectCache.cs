@@ -232,8 +232,8 @@ namespace SLua
             bool gco = IsGcObject(o);
 
 #if SLUA_CHECK_REFLECTION
-            int isReflect = LuaDLL.luaS_pushobject(ptr, index, getAQName(o), gco, udCacheRef);
-            if (isReflect != 0 && checkReflect)
+            int isReflect = LuaNativeMethods.luaS_pushobject(ptr, index, GetAQName(o), gco, cacheRef);
+            if (isReflect != 0 && checkReflect && !(o is LuaClassObject))
             {
                 Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
             }
@@ -260,33 +260,33 @@ namespace SLua
                 this.Add(new ObjSlot(0, null));
             }
 
-            public int add(object o)
+            public int Add(object o)
             {
                 ObjSlot free = this[0];
-                if (free.freeslot == 0)
+                if (free.Freeslot == 0)
                 {
-                    Add(new ObjSlot(this.Count, o));
+                    base.Add(new ObjSlot(this.Count, o));
                     return this.Count - 1;
                 }
                 else
                 {
-                    int slot = free.freeslot;
-                    free.freeslot = this[slot].freeslot;
-                    this[slot].v = o;
-                    this[slot].freeslot = slot;
+                    int slot = free.Freeslot;
+                    free.Freeslot = this[slot].Freeslot;
+                    this[slot].Value = o;
+                    this[slot].Freeslot = slot;
                     return slot;
                 }
             }
 
-            public void del(int i)
+            public void Delete(int i)
             {
                 ObjSlot free = this[0];
-                this[i].freeslot = free.freeslot;
-                this[i].v = null;
-                free.freeslot = i;
+                this[i].Freeslot = free.Freeslot;
+                this[i].Value = null;
+                free.Freeslot = i;
             }
 
-            public bool get(int i, out object o)
+            public bool Get(int i, out object o)
             {
                 if (i < 1 || i > this.Count)
                 {
@@ -294,21 +294,21 @@ namespace SLua
                 }
 
                 ObjSlot slot = this[i];
-                o = slot.v;
+                o = slot.Value;
                 return o != null;
             }
 
-            public object get(int i)
+            public object Get(int i)
             {
                 object o;
-                if (get(i, out o))
+                if (Get(i, out o))
                     return o;
                 return null;
             }
 
-            public void set(int i, object o)
+            public void Set(int i, object o)
             {
-                this[i].v = o;
+                this[i].Value = o;
             }
         }
 #else
@@ -372,9 +372,9 @@ namespace SLua
                 Value = o;
             }
 
-            public int Freeslot { get; private set; }
+            public int Freeslot { get; set; }
 
-            public object Value { get; private set; }
+            public object Value { get; set; }
         }
     }
 }

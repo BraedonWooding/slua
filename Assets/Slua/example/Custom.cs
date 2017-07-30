@@ -33,7 +33,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
     }
@@ -89,6 +89,11 @@ public class Custom : MonoBehaviour
     public string GetTypeName(Type t)
     {
         return t.Name;
+    }
+
+    public T CastTo<T>()
+    {
+        return default(T);
     }
 
     public void Start()

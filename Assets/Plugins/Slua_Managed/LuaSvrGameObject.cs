@@ -20,19 +20,6 @@ namespace SLua
 
         public Action OnUpdate { get; set; }
 
-        public void OnDestroy()
-        {
-            if (this.State != null)
-            {
-                // state is disposed by editorapplication if in the Editor
-                // state isn't disposed in App because that all resources will be disposed by app on process exit.
-            }
-        }
-
-        public void Init()
-        {
-        }
-
         public void Update()
         {
             if (this.OnUpdate != null)

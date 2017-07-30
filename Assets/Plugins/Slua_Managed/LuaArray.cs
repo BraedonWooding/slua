@@ -58,10 +58,10 @@ namespace SLua
             try
             {
                 Array a = (Array)CheckSelf(ptr);
-                if (LuaNativeMethods.lua_type(ptr, 2) == LuaTypes.LUA_TSTRING)
+                if (LuaNativeMethods.lua_type(ptr, 2) == LuaTypes.TYPE_STRING)
                 {
                     string mn;
-                    LuaObject.CheckType(ptr, 2, out mn);
+                    CheckType(ptr, 2, out mn);
                     ArrayPropFunction fun;
                     if (propertyMethods.TryGetValue(mn, out fun))
                     {
@@ -76,7 +76,7 @@ namespace SLua
                 else
                 {
                     int i;
-                    LuaObject.CheckType(ptr, 2, out i);
+                    CheckType(ptr, 2, out i);
                     LuaObject.Assert(i > 0, "index base 1");
                     LuaObject.PushValue(ptr, true);
                     LuaObject.PushVar(ptr, a.GetValue(i - 1));
@@ -85,7 +85,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 
@@ -96,7 +96,7 @@ namespace SLua
             {
                 Array a = (Array)CheckSelf(ptr);
                 int i;
-                LuaObject.CheckType(ptr, 2, out i);
+                CheckType(ptr, 2, out i);
                 LuaObject.Assert(i > 0, "index base 1");
                 object o = CheckVar(ptr, 3);
                 Type et = a.GetType().GetElementType();
@@ -105,7 +105,7 @@ namespace SLua
             }
             catch (Exception e)
             {
-                return LuaObject.Error(ptr, e);
+                return Error(ptr, e);
             }
         }
 

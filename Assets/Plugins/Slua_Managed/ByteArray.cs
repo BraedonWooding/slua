@@ -283,13 +283,13 @@ namespace SLua
 
         public void WriteBool(bool v)
         {
-            this.WriteByte(Convert.ToByte(v));
+            this.WriteByte(v ? (byte)1 : (byte)0);
         }
 
         public void WriteSByte(sbyte v)
         {
             ReAlloc(ref this.data, this.pos, 1);
-            BitConverter.GetBytes(v).CopyTo(this.data, this.pos);
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
             this.pos++;
         }
 
@@ -315,38 +315,35 @@ namespace SLua
         public void WriteShortInt(short v)
         {
             ReAlloc(ref this.data, this.pos, 2);
-            this.data[this.pos] = (byte)(v & 0xff);
-            this.pos++;
-            this.data[this.pos] = (byte)(v >> 8);
-            this.pos++;
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
+            this.pos += 2;
         }
 
         public void WriteUnsignedShortInt(ushort v)
         {
             ReAlloc(ref this.data, this.pos, 2);
-            this.data[this.pos] = (byte)((short)v & 0xff);
-            this.pos++;
-            this.data[this.pos] = (byte)((short)v >> 8);
-            this.pos++;
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
+            this.pos += 2;
         }
 
         public void WriteInt(int v)
         {
-            ReAlloc(ref this.data, this.pos, 4);
-            BitConverter.GetBytes(v).CopyTo(this.data, this.pos);
-            this.pos += 4;
+            ReAlloc(ref this.data, this.pos, sizeof(int));
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
+            this.pos += sizeof(int);
         }
 
         public void WriteUnsignedInt(uint v)
         {
-            ReAlloc(ref this.data, this.pos, 4);
-            BitConverter.GetBytes(v).CopyTo(this.data, this.pos);
-            this.pos += 4;
+            ReAlloc(ref this.data, this.pos, sizeof(uint));
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
+            this.pos += sizeof(uint);
         }
 
         public void WriteUnsignedInt(uint v, int pos)
         {
-            BitConverter.GetBytes(v).CopyTo(this.data, pos);
+            BytesHelper.MoveToBytes(this.data, pos, v);
+            this.pos += sizeof(uint);
         }
 
         public void WriteInt48(long v)
@@ -357,22 +354,22 @@ namespace SLua
 
         public void WriteLongInt(long v)
         {
-            BitConverter.GetBytes(v).CopyTo(this.data, this.pos);
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
             this.pos += sizeof(long);
         }
 
         public void WriteFloat(float v)
         {
-            ReAlloc(ref this.data, this.pos, 4);
-            BitConverter.GetBytes(v).CopyTo(this.data, this.pos);
-            this.pos += 4;
+            ReAlloc(ref this.data, this.pos, sizeof(float));
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
+            this.pos += sizeof(float);
         }
 
         public void WriteDouble(double v)
         {
-            ReAlloc(ref this.data, this.pos, 8);
-            BitConverter.GetBytes(v).CopyTo(this.data, this.pos);
-            this.pos += 8;
+            ReAlloc(ref this.data, this.pos, sizeof(double));
+            BytesHelper.MoveToBytes(this.data, this.pos, v);
+            this.pos += sizeof(double);
         }
 
         public void WriteString(string v)

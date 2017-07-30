@@ -15,6 +15,7 @@ using UnityEngine;
 public class Perf : MonoBehaviour
 {
     private LuaSvr l;
+    private bool inited = false;
 
     private string logText = string.Empty;
 
@@ -32,6 +33,7 @@ public class Perf : MonoBehaviour
             long endMem = System.GC.GetTotalMemory(true);
             Debug.Log("startMem: " + startMem + ", endMem: " + endMem + ", " + "cost mem: " + (endMem - startMem));
             l.Start("perf");
+            inited = true;
         });
 
 #if UNITY_5
@@ -49,7 +51,7 @@ public class Perf : MonoBehaviour
 
     private void OnGUI()
     {
-        if (!l.Initialized)
+        if (!inited)
         {
             return;
         }
@@ -57,48 +59,43 @@ public class Perf : MonoBehaviour
         if (GUI.Button(new Rect(10, 10, 120, 50), "Test1"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test1").Call();
+            LuaSvr.MainState.GetFunction("test1").Call();
         }
 
         if (GUI.Button(new Rect(10, 100, 120, 50), "Test2"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test2").Call();
+            LuaSvr.MainState.GetFunction("test2").Call();
         }
 
         if (GUI.Button(new Rect(10, 200, 120, 50), "Test3"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test3").Call();
+            LuaSvr.MainState.GetFunction("test3").Call();
         }
 
         if (GUI.Button(new Rect(10, 300, 120, 50), "Test4"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test4").Call();
+            LuaSvr.MainState.GetFunction("test4").Call();
         }
 
         if (GUI.Button(new Rect(200, 10, 120, 50), "Test5"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test5").Call();
+            LuaSvr.MainState.GetFunction("test5").Call();
         }
 
         if (GUI.Button(new Rect(200, 100, 120, 50), "Test6 jit"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test6").Call();
+            LuaSvr.MainState.GetFunction("test6").Call();
         }
 
         if (GUI.Button(new Rect(200, 200, 120, 50), "Test6 non-jit"))
         {
             logText = string.Empty;
-            l.LUAState.GetFunction("test7").Call();
-        }
-
-        if (GUI.Button(new Rect(10, 400, 300, 50), "Click here for detail(in Chinese)"))
-        {
-            Application.OpenURL("http://www.sineysoft.com/post/164");
+            LuaSvr.MainState.GetFunction("test7").Call();
         }
 
         GUI.Label(new Rect(400, 200, 300, 50), logText);
